@@ -4,6 +4,11 @@ run:
 
 linters:
   enable-all: true
+  disable:
+    - golint
+    - scopelint
+    - interfacer
+    - maligned
 
 linters-settings:
   funlen:
