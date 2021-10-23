@@ -10,4 +10,7 @@ test:
 pipeline:
 	make lint && make test
 
+build:
+	go build ./cmd/repl/main.go
+
 .DEFAULT_GOAL := pipeline
