@@ -4,7 +4,7 @@ lint:
 
 .PHONY: test
 test:
-	go test -v -race -timeout 30s ./internal/... ./pkg/...
+	go test -v -race -timeout 30s ./internal/...
 
 .PHONY: pipeline
 pipeline:
