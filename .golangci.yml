@@ -9,6 +9,7 @@ linters:
     - scopelint
     - interfacer
     - maligned
+    - gci
 
 linters-settings:
   funlen:

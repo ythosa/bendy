@@ -5,6 +5,8 @@ import (
 	"io"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/ythosa/bendy/internal/decoder"
 )
 
@@ -30,18 +32,17 @@ func TestTXTDecoder_DecodeNext(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		txtDecoder := decoder.NewTXTDecoder(tc.file)
 
 		for i := 0; i < len(tc.expectedResult); i++ {
 			decoded, ok := txtDecoder.DecodeNext()
-			if !ok && tc.expectedResult != nil {
-				t.Fatalf("decoded file part haven't next")
-			}
-
-			if decoded != tc.expectedResult[i] {
-				t.Errorf("value is not expected. got: \"%s\", want: \"%s\"", decoded, tc.expectedResult[i])
-			}
+			assert.Equal(t, ok, true)
+			assert.Equal(t, tc.expectedResult[i], decoded)
 		}
+
+		// there is no words to decode
+		decoded, ok := txtDecoder.DecodeNext()
+		assert.Equal(t, ok, false)
+		assert.Equal(t, decoded, "")
 	}
 }
