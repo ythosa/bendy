@@ -1,16 +1,15 @@
-.PHONY: lint
 lint:
-	${GOPATH}/bin/golangci-lint run
+	@sh -c "'$(CURDIR)/scripts/lint.sh'"
 
-.PHONY: test
-test:
-	go test -v -race -timeout 30s ./internal/...
-
-.PHONY: pipeline
-pipeline:
-	make lint && make test
+coverage:
+	@sh -c "'$(CURDIR)/scripts/coverage.sh'"
 
 build:
-	go build ./cmd/repl/main.go
+	@sh -c "'$(CURDIR)/scripts/build.sh'"
+
+pipeline:
+	make lint && make coverage && make build
+
+.PHONY: lint, coverage, build, pipeline
 
 .DEFAULT_GOAL := pipeline
