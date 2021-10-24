@@ -21,8 +21,7 @@ jobs:
        - name: Vendor files
          run: go mod vendor
        - name: Install golang-lint
-         run: |
-           curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.42.1
+         run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.42.1
        - name: Lint Go Code
          run: make lint
   test:
