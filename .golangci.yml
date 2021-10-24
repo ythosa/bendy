@@ -10,6 +10,7 @@ linters:
     - interfacer
     - maligned
     - gci
+    - paralleltest
 
 linters-settings:
   funlen:
