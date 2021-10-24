@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
 # Check code with golangci-lint
 echo "==> Checking that the code satisfies the linter..."

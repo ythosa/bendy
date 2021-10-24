@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
 # Build app with go build
 echo "==> Checking that the code is building..."
