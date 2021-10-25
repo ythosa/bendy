@@ -3,28 +3,28 @@ package indexer
 import (
 	"container/list"
 	"context"
-	"encoding/gob"
 	"fmt"
 	"os"
 
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
 
+	"github.com/ythosa/bendy/internal/config"
 	"github.com/ythosa/bendy/internal/decoder"
 	"github.com/ythosa/bendy/internal/normalizer"
 )
-
-const maxOpenFilesCount = 1000
 
 type DocID uint32
 
 type Indexer struct {
 	normalizer normalizer.Normalizer
+	config     *config.Index
 }
 
-func NewIndexer(normalizer normalizer.Normalizer) *Indexer {
+func NewIndexer(normalizer normalizer.Normalizer, config *config.Index) *Indexer {
 	return &Indexer{
 		normalizer: normalizer,
+		config:     config,
 	}
 }
 
@@ -34,7 +34,7 @@ func (i *Indexer) IndexFiles(filePaths []string) (InvertIndex, error) {
 	}
 
 	ctx := context.TODO()
-	sem := semaphore.NewWeighted(maxOpenFilesCount)
+	sem := semaphore.NewWeighted(i.config.MaxOpenFilesCount)
 	errs, _ := errgroup.WithContext(context.Background())
 
 	for docID, filePath := range filePaths {
@@ -56,7 +56,7 @@ func (i *Indexer) IndexFiles(filePaths []string) (InvertIndex, error) {
 		return nil, fmt.Errorf("error while indexing file: %w", err)
 	}
 
-	return mergeIndexingResults(len(filePaths))
+	return i.mergeIndexingResults(len(filePaths))
 }
 
 func (i *Indexer) indexFile(filePath string, docID DocID) error {
@@ -82,14 +82,14 @@ func (i *Indexer) indexFile(filePath string, docID DocID) error {
 		}
 	}
 
-	return encodeDictionaryToFile(dictionary, getFilenameFromDocID(docID))
+	return encodeDictionaryToFile(dictionary, i.getFilenameFromDocID(docID))
 }
 
-func mergeIndexingResults(resultsCount int) (InvertIndex, error) {
+func (i *Indexer) mergeIndexingResults(resultsCount int) (InvertIndex, error) {
 	invertIndex := make(InvertIndex)
 
 	for docID := DocID(0); int(docID) < resultsCount; docID++ {
-		filename := getFilenameFromDocID(docID)
+		filename := i.getFilenameFromDocID(docID)
 
 		terms, err := decodeDictionaryFromFile(filename)
 		if err != nil {
@@ -113,68 +113,6 @@ func mergeIndexingResults(resultsCount int) (InvertIndex, error) {
 	return invertIndex, nil
 }
 
-func insertToListWithKeepSorting(l *list.List, docID DocID) {
-	var previousElement *list.Element
-
-	for currentElement := l.Front(); currentElement != nil; currentElement = currentElement.Next() {
-		if value, _ := currentElement.Value.(DocID); value > docID {
-			break
-		}
-
-		previousElement = currentElement
-	}
-
-	if previousElement != nil {
-		l.InsertAfter(docID, previousElement)
-	} else {
-		l.InsertBefore(docID, l.Front())
-	}
-}
-
-func checkIsFilePathsValid(filePaths []string) error {
-	for _, fp := range filePaths {
-		if _, err := os.Stat(fp); err != nil {
-			return fmt.Errorf("error while getting file stat: %w", err)
-		}
-	}
-
-	return nil
-}
-
-func getFilenameFromDocID(docID DocID) string {
-	return fmt.Sprintf("./%d", docID)
-}
-
-func encodeDictionaryToFile(dictionary []string, filePath string) error {
-	f, err := os.Create(filePath)
-	if err != nil {
-		return fmt.Errorf("error while creating file: %w", err)
-	}
-
-	e := gob.NewEncoder(f)
-	if err := e.Encode(dictionary); err != nil {
-		return fmt.Errorf("error while encoding: %w", err)
-	}
-
-	_ = f.Close()
-
-	return nil
-}
-
-func decodeDictionaryFromFile(filePath string) ([]string, error) {
-	f, err := os.Open(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("error while opening file: %w", err)
-	}
-
-	var terms []string
-
-	d := gob.NewDecoder(f)
-	if err := d.Decode(&terms); err != nil {
-		return nil, fmt.Errorf("error while decoding terms from file: %w", err)
-	}
-
-	_ = f.Close()
-
-	return terms, nil
+func (i *Indexer) getFilenameFromDocID(docID DocID) string {
+	return fmt.Sprintf("%s%d", i.config.TempFilesStoragePath, docID)
 }

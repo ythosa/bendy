@@ -2,18 +2,19 @@ package indexer
 
 import (
 	"container/list"
+	"fmt"
 	"os"
-	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/ythosa/bendy/internal/config"
 	"github.com/ythosa/bendy/internal/normalizer"
 )
 
 func TestIndexer_IndexFiles(t *testing.T) {
 	filePaths := []string{"./test_index_files1", "./test_index_files2", "./test_index_files3"}
-	indxr := NewIndexer(normalizer.NewEnglishNormalizer())
+	indxr := NewIndexer(normalizer.NewEnglishNormalizer(), config.Get().Index)
 
 	// indexing error: no files
 	_, err := indxr.IndexFiles(filePaths)
@@ -47,15 +48,14 @@ func TestIndexer_IndexFiles(t *testing.T) {
 	}
 }
 
-func TestMergeIndexingResults(t *testing.T) {
+func TestIndexer_MergeIndexingResults(t *testing.T) {
 	// there is no generated index files
-	_, err := mergeIndexingResults(1)
+	i := NewIndexer(normalizer.NewEnglishNormalizer(), config.Get().Index)
+	_, err := i.mergeIndexingResults(1)
 	assert.NotNil(t, err)
 
 	// ok
 	const inputFilePath = "./merge_indexing_results"
-
-	i := NewIndexer(normalizer.NewEnglishNormalizer())
 
 	f, _ := os.Create(inputFilePath)
 	_, _ = f.WriteString("input data :)")
@@ -67,7 +67,7 @@ func TestMergeIndexingResults(t *testing.T) {
 	_ = i.indexFile(inputFilePath, 1)
 	_ = os.Remove(inputFilePath)
 
-	ii, err := mergeIndexingResults(2)
+	ii, err := i.mergeIndexingResults(2)
 	assert.Nil(t, err)
 	compareLists(t, sliceToList([]DocID{0, 1}), ii["input"])
 	compareLists(t, sliceToList([]DocID{0, 1}), ii["data"])
@@ -77,7 +77,7 @@ func TestMergeIndexingResults(t *testing.T) {
 func TestIndexer_IndexFile(t *testing.T) {
 	t.Parallel()
 
-	i := NewIndexer(normalizer.NewEnglishNormalizer())
+	i := NewIndexer(normalizer.NewEnglishNormalizer(), config.Get().Index)
 
 	// error creating file
 	assert.NotNil(t, i.indexFile("./kek/kek", 1))
@@ -95,48 +95,7 @@ func TestIndexer_IndexFile(t *testing.T) {
 
 	// remove generated files
 	_ = os.Remove(validFilename)
-	_ = os.Remove(getFilenameFromDocID(docID))
-}
-
-func TestInsertWithKeepSorting(t *testing.T) {
-	t.Parallel()
-
-	type args struct {
-		l     *list.List
-		docID DocID
-	}
-
-	testCases := []struct {
-		input    args
-		expected *list.List
-	}{
-		{
-			input: args{
-				l:     sliceToList([]DocID{1, 2, 5, 6}),
-				docID: 3,
-			},
-			expected: sliceToList([]DocID{1, 2, 3, 5, 6}),
-		},
-		{
-			input: args{
-				l:     sliceToList([]DocID{2}),
-				docID: 1,
-			},
-			expected: sliceToList([]DocID{1, 2}),
-		},
-		{
-			input: args{
-				l:     sliceToList([]DocID{2}),
-				docID: 3,
-			},
-			expected: sliceToList([]DocID{2, 3}),
-		},
-	}
-
-	for _, tc := range testCases {
-		insertToListWithKeepSorting(tc.input.l, tc.input.docID)
-		compareLists(t, tc.expected, tc.input.l)
-	}
+	_ = os.Remove(i.getFilenameFromDocID(docID))
 }
 
 func sliceToList(slice []DocID) *list.List {
@@ -166,85 +125,10 @@ func compareLists(t *testing.T, expected *list.List, actual *list.List) {
 	}
 }
 
-func TestCheckIsFilePathsValid(t *testing.T) {
+func TestIndexer_GetFileNameFromDocID(t *testing.T) {
 	t.Parallel()
 
-	testCases := []struct {
-		filePaths     []string
-		expectedError bool
-	}{
-		{
-			filePaths:     []string{"./indexer.go"},
-			expectedError: false,
-		},
-		{
-			filePaths:     []string{"./invalid_file_path"},
-			expectedError: true,
-		},
-		{
-			filePaths:     []string{"./indexer", "./invalid_file_path"},
-			expectedError: true,
-		},
-	}
-
-	for _, tc := range testCases {
-		if tc.expectedError {
-			assert.NotNil(t, checkIsFilePathsValid(tc.filePaths))
-		} else {
-			assert.Nil(t, checkIsFilePathsValid(tc.filePaths))
-		}
-	}
-}
-
-func TestGetFileNameFromDocID(t *testing.T) {
-	t.Parallel()
-
-	filename := getFilenameFromDocID(1)
-	assert.Equal(t, "./1", filename)
-}
-
-func TestDumpingDictionary(t *testing.T) {
-	t.Parallel()
-
-	toDump := []string{"it", "is", "dump", "value"}
-	filePath := "./dump_test"
-
-	assert.Nil(t, encodeDictionaryToFile(toDump, filePath))
-
-	decoded, err := decodeDictionaryFromFile(filePath)
-	assert.Nil(t, err)
-
-	assert.Equal(t, reflect.DeepEqual(toDump, decoded), true)
-
-	assert.Nil(t, os.Remove(filePath))
-}
-
-func TestEncodeDictionaryToFile(t *testing.T) {
-	t.Parallel()
-
-	// creating file error
-	invalidFilePath := "./kek/encode_test"
-	assert.NotNil(t, encodeDictionaryToFile(nil, invalidFilePath))
-	_ = os.Remove(invalidFilePath)
-}
-
-func TestDecodeDictionaryFromFile(t *testing.T) {
-	t.Parallel()
-
-	// file is not exist error
-	filePath := "./decode_test"
-	decoded, err := decodeDictionaryFromFile(filePath)
-
-	assert.Nil(t, decoded)
-	assert.NotNil(t, err)
-
-	// decoding error
-	f, _ := os.Create(filePath)
-	_, _ = f.WriteString("kek")
-	decoded, err = decodeDictionaryFromFile(filePath)
-
-	assert.Nil(t, decoded)
-	assert.NotNil(t, err)
-
-	assert.Nil(t, os.Remove(filePath))
+	indxr := NewIndexer(normalizer.NewEnglishNormalizer(), config.Get().Index)
+	filename := indxr.getFilenameFromDocID(1)
+	assert.Equal(t, fmt.Sprintf("%s1", config.Get().Index.TempFilesStoragePath), filename)
 }
