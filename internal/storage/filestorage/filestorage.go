@@ -7,7 +7,7 @@ import (
 
 func NewStorage(cfg config.Storage) *storage.Storage {
 	return &storage.Storage{
-		Index: nil,
+		Index: NewIndexImpl(cfg.IndexStoragePath),
 		Files: NewFilesImpl(cfg.IndexingFilesFilenamesPath),
 	}
 }

@@ -98,15 +98,6 @@ func TestIndexer_IndexFile(t *testing.T) {
 	_ = os.Remove(i.getFilenameFromDocID(docID))
 }
 
-func sliceToList(slice []DocID) *list.List {
-	l := list.New()
-	for _, v := range slice {
-		l.PushBack(v)
-	}
-
-	return l
-}
-
 func compareLists(t *testing.T, expected *list.List, actual *list.List) {
 	t.Helper()
 
