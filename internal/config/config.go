@@ -11,7 +11,7 @@ import (
 
 const (
 	configsFolderPathEnv     = "BENDY_CONFIGS_FOLDER_PATH"
-	defaultConfigsFolderPath = "./configs"
+	defaultConfigsFolderPath = "../../configs"
 	configNameEnv            = "BENDY_CONFIG_NAME"
 	defaultConfigName        = "default"
 )
@@ -68,13 +68,13 @@ func initConfigParser() error {
 
 type Index struct {
 	TempFilesStoragePath string
-	MaxOpenFilesCount    int
+	MaxOpenFilesCount    int64
 }
 
 func newIndex() *Index {
 	return &Index{
 		TempFilesStoragePath: viper.GetString("index.temp_file_storage_path"),
-		MaxOpenFilesCount:    viper.GetInt("index.max_open_files_count"),
+		MaxOpenFilesCount:    viper.GetInt64("index.max_open_files_count"),
 	}
 }
 
