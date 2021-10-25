@@ -6,7 +6,6 @@ import (
 	"encoding/gob"
 	"fmt"
 	"os"
-	"sync/atomic"
 
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
@@ -38,10 +37,9 @@ func (i *Indexer) IndexFiles(filePaths []string) (InvertIndex, error) {
 	sem := semaphore.NewWeighted(maxOpenFilesCount)
 	errs, _ := errgroup.WithContext(context.Background())
 
-	var docID DocID
-
-	for _, fp := range filePaths {
-		fp := fp
+	for docID, filePath := range filePaths {
+		filePath := filePath
+		docID := DocID(docID)
 
 		if err := sem.Acquire(ctx, 1); err != nil {
 			return nil, fmt.Errorf("failed to acquire semaphore: %w", err)
@@ -49,52 +47,29 @@ func (i *Indexer) IndexFiles(filePaths []string) (InvertIndex, error) {
 
 		errs.Go(func() error {
 			defer sem.Release(1)
-			atomic.AddUint32((*uint32)(&docID), 1)
 
-			return i.indexFile(fp, docID)
+			return i.indexFile(filePath, docID)
 		})
 	}
 
 	if err := errs.Wait(); err != nil {
-		return nil, fmt.Errorf("error while indexing files: %w", err)
+		return nil, fmt.Errorf("error while indexing file: %w", err)
 	}
 
 	return mergeIndexingResults(len(filePaths))
 }
 
-func mergeIndexingResults(resultsCount int) (InvertIndex, error) {
-	invertIndex := make(InvertIndex)
-
-	for i := 1; i <= resultsCount; i++ {
-		terms, err := decodeDictionaryFromFile(getFilenameFromDocID(DocID(i)))
-		if err != nil {
-			return nil, err
-		}
-
-		for _, t := range terms {
-			if docIDs, ok := invertIndex[t]; ok {
-				insertWithKeepSorting(docIDs, DocID(i))
-			} else {
-				invertIndex[t] = list.New()
-				invertIndex[t].PushBack(DocID(i))
-			}
-		}
-	}
-
-	return invertIndex, nil
-}
-
 func (i *Indexer) indexFile(filePath string, docID DocID) error {
-	f, err := os.Open(filePath)
+	file, err := os.Open(filePath)
 	if err != nil {
 		return fmt.Errorf("error while opening file: %w", err)
 	}
 
-	d := decoder.NewTXTDecoder(f)
+	dec := decoder.NewTXTDecoder(file)
 	tokens := make(map[string]bool)
 	dictionary := make([]string, 0)
 
-	for decoded, ok := d.DecodeNext(); ok; decoded, ok = d.DecodeNext() {
+	for decoded, ok := dec.DecodeNext(); ok; decoded, ok = dec.DecodeNext() {
 		normalized := i.normalizer.Normalize(decoded)
 		if normalized == "" {
 			continue
@@ -110,19 +85,47 @@ func (i *Indexer) indexFile(filePath string, docID DocID) error {
 	return encodeDictionaryToFile(dictionary, getFilenameFromDocID(docID))
 }
 
-func insertWithKeepSorting(l *list.List, docID DocID) {
-	var prev *list.Element
+func mergeIndexingResults(resultsCount int) (InvertIndex, error) {
+	invertIndex := make(InvertIndex)
 
-	for cur := l.Front(); cur != nil; cur = cur.Next() {
-		if value, _ := cur.Value.(DocID); value > docID {
+	for docID := DocID(0); int(docID) < resultsCount; docID++ {
+		filename := getFilenameFromDocID(docID)
+
+		terms, err := decodeDictionaryFromFile(filename)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := os.Remove(filename); err != nil {
+			return nil, fmt.Errorf("error removing file: %w", err)
+		}
+
+		for _, t := range terms {
+			if docIDs, ok := invertIndex[t]; ok {
+				insertToListWithKeepSorting(docIDs, docID)
+			} else {
+				invertIndex[t] = list.New()
+				invertIndex[t].PushBack(docID)
+			}
+		}
+	}
+
+	return invertIndex, nil
+}
+
+func insertToListWithKeepSorting(l *list.List, docID DocID) {
+	var previousElement *list.Element
+
+	for currentElement := l.Front(); currentElement != nil; currentElement = currentElement.Next() {
+		if value, _ := currentElement.Value.(DocID); value > docID {
 			break
 		}
 
-		prev = cur
+		previousElement = currentElement
 	}
 
-	if prev != nil {
-		l.InsertAfter(docID, prev)
+	if previousElement != nil {
+		l.InsertAfter(docID, previousElement)
 	} else {
 		l.InsertBefore(docID, l.Front())
 	}

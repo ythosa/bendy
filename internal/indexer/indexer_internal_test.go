@@ -11,6 +11,42 @@ import (
 	"github.com/ythosa/bendy/internal/normalizer"
 )
 
+func TestIndexer_IndexFiles(t *testing.T) {
+	filePaths := []string{"./test_index_files1", "./test_index_files2", "./test_index_files3"}
+	indxr := NewIndexer(normalizer.NewEnglishNormalizer())
+
+	// indexing error: no files
+	_, err := indxr.IndexFiles(filePaths)
+
+	assert.NotNil(t, err)
+
+	// ok
+	f, _ := os.Create(filePaths[0])
+	_, _ = f.WriteString("kek keek keeek")
+	f, _ = os.Create(filePaths[1])
+	_, _ = f.WriteString("kek keek")
+	f, _ = os.Create(filePaths[2])
+	_, _ = f.WriteString("kek")
+
+	invertIndex, err := indxr.IndexFiles(filePaths)
+	assert.Nil(t, err)
+
+	_ = os.Remove(filePaths[0])
+	_ = os.Remove(filePaths[1])
+	_ = os.Remove(filePaths[2])
+
+	expectedInvertIndex := make(InvertIndex)
+	expectedInvertIndex["kek"] = sliceToList([]DocID{0, 1, 2})
+	expectedInvertIndex["keek"] = sliceToList([]DocID{0, 1})
+	expectedInvertIndex["keeek"] = sliceToList([]DocID{0})
+
+	for k, v := range invertIndex {
+		expectedValue, ok := expectedInvertIndex[k]
+		assert.Equal(t, ok, true)
+		compareLists(t, expectedValue, v)
+	}
+}
+
 func TestMergeIndexingResults(t *testing.T) {
 	// there is no generated index files
 	_, err := mergeIndexingResults(1)
@@ -23,25 +59,22 @@ func TestMergeIndexingResults(t *testing.T) {
 
 	f, _ := os.Create(inputFilePath)
 	_, _ = f.WriteString("input data :)")
-	_ = i.indexFile(inputFilePath, 1)
+	_ = i.indexFile(inputFilePath, 0)
 	_ = os.Remove(inputFilePath)
 
 	f, _ = os.Create(inputFilePath)
 	_, _ = f.WriteString("input data kek :)")
-	_ = i.indexFile(inputFilePath, 2)
+	_ = i.indexFile(inputFilePath, 1)
 	_ = os.Remove(inputFilePath)
 
 	ii, err := mergeIndexingResults(2)
 	assert.Nil(t, err)
-	compareLists(t, sliceToList([]DocID{1, 2}), ii["input"])
-	compareLists(t, sliceToList([]DocID{1, 2}), ii["data"])
-	compareLists(t, sliceToList([]DocID{2}), ii["kek"])
-
-	_ = os.Remove(getFilenameFromDocID(1))
-	_ = os.Remove(getFilenameFromDocID(2))
+	compareLists(t, sliceToList([]DocID{0, 1}), ii["input"])
+	compareLists(t, sliceToList([]DocID{0, 1}), ii["data"])
+	compareLists(t, sliceToList([]DocID{1}), ii["kek"])
 }
 
-func TestIndexFile(t *testing.T) {
+func TestIndexer_IndexFile(t *testing.T) {
 	t.Parallel()
 
 	i := NewIndexer(normalizer.NewEnglishNormalizer())
@@ -101,7 +134,7 @@ func TestInsertWithKeepSorting(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		insertWithKeepSorting(tc.input.l, tc.input.docID)
+		insertToListWithKeepSorting(tc.input.l, tc.input.docID)
 		compareLists(t, tc.expected, tc.input.l)
 	}
 }
