@@ -8,7 +8,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/ythosa/bendy/internal/indexer"
+	"github.com/ythosa/bendy/pkg/utils"
 )
 
 type IndexImpl struct {
@@ -27,13 +27,13 @@ func (i *IndexImpl) Get() (map[string]*list.List, error) {
 		return nil, ErrOpeningDataFile
 	}
 
-	var indexSlices map[string][]indexer.DocID
+	var indexSlices map[string][]utils.SliceValue
 
 	if err := json.Unmarshal(rawData, &indexSlices); err != nil {
 		return nil, ErrUnmarshallingDataFile
 	}
 
-	return indexer.MapIndexOnSlicesToIndexOnLists(indexSlices), nil
+	return utils.MapOnSlicesToMapOnLists(indexSlices), nil
 }
 
 func (i *IndexImpl) Update(index map[string]*list.List) error {
@@ -43,7 +43,7 @@ func (i *IndexImpl) Update(index map[string]*list.List) error {
 		return ErrTruncateDataFile
 	}
 
-	indexOnSlices := indexer.MapIndexOnListsToIndexOnSlices(index)
+	indexOnSlices := utils.MapOnListsToMapOnSlices(index)
 
 	s, err := json.Marshal(indexOnSlices)
 	if err != nil {

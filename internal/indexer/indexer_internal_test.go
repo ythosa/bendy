@@ -1,7 +1,6 @@
 package indexer
 
 import (
-	"container/list"
 	"fmt"
 	"os"
 	"testing"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/ythosa/bendy/internal/config"
 	"github.com/ythosa/bendy/internal/normalizer"
+	"github.com/ythosa/bendy/pkg/utils"
 )
 
 func TestIndexer_IndexFiles(t *testing.T) {
@@ -37,14 +37,14 @@ func TestIndexer_IndexFiles(t *testing.T) {
 	_ = os.Remove(filePaths[2])
 
 	expectedInvertIndex := make(InvertIndex)
-	expectedInvertIndex["kek"] = sliceToList([]DocID{0, 1, 2})
-	expectedInvertIndex["keek"] = sliceToList([]DocID{0, 1})
-	expectedInvertIndex["keeek"] = sliceToList([]DocID{0})
+	expectedInvertIndex["kek"] = utils.SliceToList([]utils.SliceValue{0, 1, 2})
+	expectedInvertIndex["keek"] = utils.SliceToList([]utils.SliceValue{0, 1})
+	expectedInvertIndex["keeek"] = utils.SliceToList([]utils.SliceValue{0})
 
 	for k, v := range invertIndex {
 		expectedValue, ok := expectedInvertIndex[k]
 		assert.Equal(t, ok, true)
-		compareLists(t, expectedValue, v)
+		utils.CompareLists(t, expectedValue, v)
 	}
 }
 
@@ -69,9 +69,9 @@ func TestIndexer_MergeIndexingResults(t *testing.T) {
 
 	ii, err := i.mergeIndexingResults(2)
 	assert.Nil(t, err)
-	compareLists(t, sliceToList([]DocID{0, 1}), ii["input"])
-	compareLists(t, sliceToList([]DocID{0, 1}), ii["data"])
-	compareLists(t, sliceToList([]DocID{1}), ii["kek"])
+	utils.CompareLists(t, utils.SliceToList([]utils.SliceValue{0, 1}), ii["input"])
+	utils.CompareLists(t, utils.SliceToList([]utils.SliceValue{0, 1}), ii["data"])
+	utils.CompareLists(t, utils.SliceToList([]utils.SliceValue{1}), ii["kek"])
 }
 
 func TestIndexer_IndexFile(t *testing.T) {
@@ -96,24 +96,6 @@ func TestIndexer_IndexFile(t *testing.T) {
 	// remove generated files
 	_ = os.Remove(validFilename)
 	_ = os.Remove(i.getFilenameFromDocID(docID))
-}
-
-func compareLists(t *testing.T, expected *list.List, actual *list.List) {
-	t.Helper()
-
-	assert.Equal(t, expected.Len(), actual.Len(), "lists are different sizes")
-
-	expectedElement := expected.Front()
-	actualElement := actual.Front()
-
-	for expectedElement != nil {
-		expectedValue, _ := expectedElement.Value.(DocID)
-		actualValue, _ := actualElement.Value.(DocID)
-		assert.Equal(t, expectedValue, actualValue)
-
-		expectedElement = expectedElement.Next()
-		actualElement = actualElement.Next()
-	}
 }
 
 func TestIndexer_GetFileNameFromDocID(t *testing.T) {

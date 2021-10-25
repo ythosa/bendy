@@ -12,6 +12,7 @@ import (
 	"github.com/ythosa/bendy/internal/config"
 	"github.com/ythosa/bendy/internal/decoder"
 	"github.com/ythosa/bendy/internal/normalizer"
+	"github.com/ythosa/bendy/pkg/utils"
 )
 
 type DocID uint32
@@ -29,8 +30,8 @@ func NewIndexer(normalizer normalizer.Normalizer, config *config.Index) *Indexer
 }
 
 func (i *Indexer) IndexFiles(filePaths []string) (InvertIndex, error) {
-	if err := checkIsFilePathsValid(filePaths); err != nil {
-		return nil, err
+	if err := utils.CheckIsFilePathsValid(filePaths); err != nil {
+		return nil, fmt.Errorf("error while checking files: %w", err)
 	}
 
 	ctx := context.TODO()
@@ -102,7 +103,7 @@ func (i *Indexer) mergeIndexingResults(resultsCount int) (InvertIndex, error) {
 
 		for _, t := range terms {
 			if docIDs, ok := invertIndex[t]; ok {
-				insertToListWithKeepSorting(docIDs, docID)
+				utils.InsertToListWithKeepSorting(docIDs, utils.SliceValue(docID))
 			} else {
 				invertIndex[t] = list.New()
 				invertIndex[t].PushBack(docID)
