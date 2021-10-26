@@ -103,7 +103,7 @@ func (i *Indexer) mergeIndexingResults(resultsCount int) (InvertIndex, error) {
 
 		for _, t := range terms {
 			if docIDs, ok := invertIndex[t]; ok {
-				utils.InsertToListWithKeepSorting(docIDs, utils.SliceValue(docID))
+				InsertToListWithKeepSorting(docIDs, docID)
 			} else {
 				invertIndex[t] = list.New()
 				invertIndex[t].PushBack(docID)

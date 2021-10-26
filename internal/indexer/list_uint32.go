@@ -1,4 +1,4 @@
-package utils
+package indexer
 
 import (
 	"container/list"
@@ -7,19 +7,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type ListValue uint32
-
-func ListToSlice(l *list.List) []ListValue {
-	result := make([]ListValue, 0)
+func ListToSlice(l *list.List) []DocID {
+	result := make([]DocID, 0)
 	for e := l.Front(); e != nil; e = e.Next() {
-		result = append(result, e.Value.(ListValue))
+		result = append(result, e.Value.(DocID))
 	}
 
 	return result
 }
 
-func MapOnListsToMapOnSlices(m map[string]*list.List) map[string][]ListValue {
-	result := make(map[string][]ListValue)
+func MapOnListsToMapOnSlices(m map[string]*list.List) map[string][]DocID {
+	result := make(map[string][]DocID)
 	for k, v := range m {
 		result[k] = ListToSlice(v)
 	}
@@ -36,8 +34,8 @@ func CompareLists(t *testing.T, expected *list.List, actual *list.List) {
 	actualElement := actual.Front()
 
 	for expectedElement != nil {
-		expectedValue, _ := expectedElement.Value.(ListValue)
-		actualValue, _ := actualElement.Value.(ListValue)
+		expectedValue, _ := expectedElement.Value.(DocID)
+		actualValue, _ := actualElement.Value.(DocID)
 		assert.Equal(t, expectedValue, actualValue)
 
 		expectedElement = expectedElement.Next()

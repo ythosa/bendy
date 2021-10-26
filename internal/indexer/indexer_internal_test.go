@@ -9,7 +9,6 @@ import (
 
 	"github.com/ythosa/bendy/internal/config"
 	"github.com/ythosa/bendy/internal/normalizer"
-	"github.com/ythosa/bendy/pkg/utils"
 )
 
 func TestIndexer_IndexFiles(t *testing.T) {
@@ -37,14 +36,14 @@ func TestIndexer_IndexFiles(t *testing.T) {
 	_ = os.Remove(filePaths[2])
 
 	expectedInvertIndex := make(InvertIndex)
-	expectedInvertIndex["kek"] = utils.SliceToList([]utils.SliceValue{0, 1, 2})
-	expectedInvertIndex["keek"] = utils.SliceToList([]utils.SliceValue{0, 1})
-	expectedInvertIndex["keeek"] = utils.SliceToList([]utils.SliceValue{0})
+	expectedInvertIndex["kek"] = SliceToList([]DocID{0, 1, 2})
+	expectedInvertIndex["keek"] = SliceToList([]DocID{0, 1})
+	expectedInvertIndex["keeek"] = SliceToList([]DocID{0})
 
 	for k, v := range invertIndex {
 		expectedValue, ok := expectedInvertIndex[k]
 		assert.Equal(t, ok, true)
-		utils.CompareLists(t, expectedValue, v)
+		CompareLists(t, expectedValue, v)
 	}
 }
 
@@ -69,9 +68,9 @@ func TestIndexer_MergeIndexingResults(t *testing.T) {
 
 	ii, err := i.mergeIndexingResults(2)
 	assert.Nil(t, err)
-	utils.CompareLists(t, utils.SliceToList([]utils.SliceValue{0, 1}), ii["input"])
-	utils.CompareLists(t, utils.SliceToList([]utils.SliceValue{0, 1}), ii["data"])
-	utils.CompareLists(t, utils.SliceToList([]utils.SliceValue{1}), ii["kek"])
+	CompareLists(t, SliceToList([]DocID{0, 1}), ii["input"])
+	CompareLists(t, SliceToList([]DocID{0, 1}), ii["data"])
+	CompareLists(t, SliceToList([]DocID{1}), ii["kek"])
 }
 
 func TestIndexer_IndexFile(t *testing.T) {

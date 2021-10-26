@@ -1,14 +1,14 @@
-package utils
+package indexer
 
-import "container/list"
+import (
+	"container/list"
+)
 
-type SliceValue uint32
-
-func InsertToListWithKeepSorting(l *list.List, v SliceValue) {
+func InsertToListWithKeepSorting(l *list.List, v DocID) {
 	var previousElement *list.Element
 
 	for currentElement := l.Front(); currentElement != nil; currentElement = currentElement.Next() {
-		if value, _ := currentElement.Value.(SliceValue); value > v {
+		if value, _ := currentElement.Value.(DocID); value > v {
 			break
 		}
 
@@ -22,7 +22,7 @@ func InsertToListWithKeepSorting(l *list.List, v SliceValue) {
 	}
 }
 
-func SliceToList(slice []SliceValue) *list.List {
+func SliceToList(slice []DocID) *list.List {
 	l := list.New()
 	for _, v := range slice {
 		l.PushBack(v)
@@ -31,7 +31,7 @@ func SliceToList(slice []SliceValue) *list.List {
 	return l
 }
 
-func MapOnSlicesToMapOnLists(m map[string][]SliceValue) map[string]*list.List {
+func MapOnSlicesToMapOnLists(m map[string][]DocID) map[string]*list.List {
 	result := make(map[string]*list.List)
 	for k, v := range m {
 		result[k] = SliceToList(v)
