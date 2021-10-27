@@ -9,6 +9,8 @@ import (
 )
 
 func TestStringLiteralExpression(t *testing.T) {
+	t.Parallel()
+
 	input := `"hello";`
 
 	l := lexer.New(input)
@@ -31,6 +33,8 @@ func TestStringLiteralExpression(t *testing.T) {
 }
 
 func TestParsingPrefixExpressions(t *testing.T) {
+	t.Parallel()
+
 	prefixTests := []struct {
 		input    string
 		operator string
@@ -73,6 +77,8 @@ func TestParsingPrefixExpressions(t *testing.T) {
 }
 
 func TestParsingInfixExpressions(t *testing.T) {
+	t.Parallel()
+
 	infixTests := []struct {
 		input      string
 		leftValue  interface{}
@@ -202,6 +208,8 @@ func checkParserErrors(t *testing.T, p *parser.Parser) {
 }
 
 func TestOperatorPrecedenceParsing(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		input    string
 		expected string

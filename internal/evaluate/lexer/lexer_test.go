@@ -8,6 +8,8 @@ import (
 )
 
 func TestNextToken(t *testing.T) {
+	t.Parallel()
+
 	input := `"LOL" & "KEK" | ("BOO" & (!"AAA"))`
 	tests := []struct {
 		expectedType    token.Type
