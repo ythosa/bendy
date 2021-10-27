@@ -3,5 +3,5 @@ index:
   max_open_files_count: 1000
 
 storage:
-  index_storage_path: "./invert_index.out"
-  indexing_files_filenames_path: "./indexing_files.out"
+  index_storage_path: "./invert_index.json"
+  indexing_files_filenames_path: "./indexing_files.json"
