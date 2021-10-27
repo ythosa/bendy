@@ -17,3 +17,6 @@ vendor/
 # IDE files
 .idea
 .vscode
+
+# Data files
+*.json
