@@ -11,6 +11,7 @@ linters:
     - maligned
     - gci
     - paralleltest
+    - exhaustivestruct
 
 linters-settings:
   funlen:
