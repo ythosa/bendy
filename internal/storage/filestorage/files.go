@@ -6,6 +6,8 @@ import (
 	"os"
 
 	"github.com/sirupsen/logrus"
+
+	"github.com/ythosa/bendy/pkg/utils"
 )
 
 type FilesImpl struct {
@@ -17,11 +19,15 @@ func NewFilesImpl(indexingFilesFilenamesPath string) *FilesImpl {
 }
 
 func (f *FilesImpl) Get() ([]string, error) {
+	if err := f.isDataFileExists(); err != nil {
+		if err := f.createEmptyDataFile(); err != nil {
+			return nil, err
+		}
+	}
+
 	rawData, err := ioutil.ReadFile(f.indexingFilesFilenamesPath)
 	if err != nil {
-		logrus.Error(err)
-
-		return nil, ErrOpeningDataFile
+		return nil, ErrReadingDataFile
 	}
 
 	var files []string
@@ -66,10 +72,11 @@ func remove(l []string, item string) []string {
 }
 
 func (f *FilesImpl) update(filenames []string) error {
-	if err := os.Truncate(f.indexingFilesFilenamesPath, 0); err != nil {
-		logrus.Errorf("failed to truncate: %v", err)
+	file, err := os.Create(f.indexingFilesFilenamesPath)
+	if err != nil {
+		logrus.Error(err)
 
-		return ErrTruncateDataFile
+		return ErrCreatingDataFile
 	}
 
 	s, err := json.Marshal(filenames)
@@ -79,14 +86,39 @@ func (f *FilesImpl) update(filenames []string) error {
 		return ErrMarshallingData
 	}
 
-	file, err := os.Open(f.indexingFilesFilenamesPath)
+	if _, err := file.Write(s); err != nil {
+		logrus.Error(err)
+
+		return ErrWritingToDataFile
+	}
+
+	_ = file.Close()
+
+	return nil
+}
+
+func (f *FilesImpl) isDataFileExists() error {
+	return utils.CheckIsFilePathsValid([]string{f.indexingFilesFilenamesPath})
+}
+
+func (f *FilesImpl) createEmptyDataFile() error {
+	file, err := os.Create(f.indexingFilesFilenamesPath)
 	if err != nil {
 		logrus.Error(err)
 
-		return ErrOpeningDataFile
+		return ErrCreatingDataFile
 	}
 
-	if _, err := file.Write(s); err != nil {
+	emptyData := make([]string, 0)
+
+	s, err := json.Marshal(emptyData)
+	if err != nil {
+		logrus.Error(err)
+
+		return ErrMarshallingData
+	}
+
+	if _, err := file.WriteString(string(s)); err != nil {
 		logrus.Error(err)
 
 		return ErrWritingToDataFile

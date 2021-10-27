@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/ythosa/bendy/internal/indexer"
+	"github.com/ythosa/bendy/pkg/utils"
 )
 
 type IndexImpl struct {
@@ -22,9 +23,13 @@ func NewIndexImpl(indexStoragePath string) *IndexImpl {
 func (i *IndexImpl) Get() (map[string]*list.List, error) {
 	rawData, err := ioutil.ReadFile(i.indexStoragePath)
 	if err != nil {
-		logrus.Error(err)
+		if _, err := os.Create(i.indexStoragePath); err != nil {
+			logrus.Error(err)
 
-		return nil, ErrOpeningDataFile
+			return nil, ErrCreatingDataFile
+		}
+
+		return make(map[string]*list.List), nil
 	}
 
 	var indexSlices map[string][]indexer.DocID
@@ -37,10 +42,13 @@ func (i *IndexImpl) Get() (map[string]*list.List, error) {
 }
 
 func (i *IndexImpl) Update(index map[string]*list.List) error {
-	if err := os.Truncate(i.indexStoragePath, 0); err != nil {
-		logrus.Errorf("failed to truncate: %v", err)
+	file, err := os.Create(i.indexStoragePath)
+	if err != nil {
+		if file, err = os.Create(i.indexStoragePath); err != nil {
+			logrus.Error(err)
 
-		return ErrTruncateDataFile
+			return ErrCreatingDataFile
+		}
 	}
 
 	indexOnSlices := indexer.MapOnListsToMapOnSlices(index)
@@ -52,14 +60,39 @@ func (i *IndexImpl) Update(index map[string]*list.List) error {
 		return ErrMarshallingData
 	}
 
-	file, err := os.Open(i.indexStoragePath)
+	if _, err := file.Write(s); err != nil {
+		logrus.Error(err)
+
+		return ErrWritingToDataFile
+	}
+
+	_ = file.Close()
+
+	return nil
+}
+
+func (i *IndexImpl) isDataFileExists() error {
+	return utils.CheckIsFilePathsValid([]string{i.indexStoragePath})
+}
+
+func (i *IndexImpl) createEmptyDataFile() error {
+	file, err := os.Create(i.indexStoragePath)
 	if err != nil {
 		logrus.Error(err)
 
-		return ErrOpeningDataFile
+		return ErrCreatingDataFile
 	}
 
-	if _, err := file.Write(s); err != nil {
+	emptyData := make(map[string][]indexer.DocID)
+
+	s, err := json.Marshal(emptyData)
+	if err != nil {
+		logrus.Error(err)
+
+		return ErrMarshallingData
+	}
+
+	if _, err := file.WriteString(string(s)); err != nil {
 		logrus.Error(err)
 
 		return ErrWritingToDataFile
