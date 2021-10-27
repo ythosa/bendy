@@ -51,7 +51,7 @@ func TestEvaluator_Eval(t *testing.T) {
 			expected: []indexer.DocID{1, 2, 3, 4, 5, 7},
 		},
 		{
-			input: `!"kek" & ("lol" | "damn")`,
+			input:    `!"kek" & ("lol" | "damn")`,
 			expected: []indexer.DocID{2, 4, 6},
 		},
 	}
