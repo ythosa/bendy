@@ -14,7 +14,7 @@ func getTestEvaluatorObject() *evaluate.Evaluator {
 	ii := make(indexer.InvertIndex)
 	ii["kek"] = indexer.SliceToList([]indexer.DocID{1, 3, 5})
 	ii["lol"] = indexer.SliceToList([]indexer.DocID{2, 3, 4})
-	ii["damn"] = indexer.SliceToList([]indexer.DocID{6})
+	ii["puk"] = indexer.SliceToList([]indexer.DocID{6})
 
 	e := evaluate.NewEvaluator(ii, indexer.SliceToList([]indexer.DocID{1, 2, 3, 4, 5, 6, 7}))
 
@@ -47,11 +47,11 @@ func TestEvaluator_Eval(t *testing.T) {
 			expected: []indexer.DocID{1, 5},
 		},
 		{
-			input:    `"kek" | !"damn"`,
+			input:    `"kek" | !"puk"`,
 			expected: []indexer.DocID{1, 2, 3, 4, 5, 7},
 		},
 		{
-			input:    `!"kek" & ("lol" | "damn")`,
+			input:    `!"kek" & ("lol" | "puk")`,
 			expected: []indexer.DocID{2, 4, 6},
 		},
 	}
