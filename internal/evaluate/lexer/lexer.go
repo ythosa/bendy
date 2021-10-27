@@ -38,6 +38,8 @@ func (l *Lexer) NextToken() token.Token {
 	case '"':
 		tok.Type = token.WORD
 		tok.Literal = l.readString()
+	case ';':
+		tok = newToken(token.SEMICOLON, l.ch)
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF

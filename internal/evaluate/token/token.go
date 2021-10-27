@@ -23,6 +23,7 @@ const (
 	NOT = "!"
 
 	// Delimiters
-	LPAREN = "("
-	RPAREN = ")"
+	LPAREN    = "("
+	RPAREN    = ")"
+	SEMICOLON = ";"
 )
