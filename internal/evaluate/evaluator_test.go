@@ -54,6 +54,10 @@ func TestEvaluator_Eval(t *testing.T) {
 			input:    `!"kek" & ("lol" | "puk")`,
 			expected: []indexer.DocID{2, 4, 6},
 		},
+		{
+			input:    `"kek" & "ya kto"`,
+			expected: []indexer.DocID{},
+		},
 	}
 
 	for _, tc := range testCases {

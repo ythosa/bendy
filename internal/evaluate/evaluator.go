@@ -30,8 +30,13 @@ func (e *Evaluator) Eval(node ast.Node) object.Object {
 		return e.Eval(node.Expression)
 
 	case *ast.WordLiteral:
+		docIDs := e.InvertIndex[node.Value]
+		if docIDs == nil {
+			docIDs = list.New()
+		}
+
 		return &object.DocIDs{
-			Value: e.InvertIndex[node.Value],
+			Value: docIDs,
 		}
 
 	case *ast.PrefixExpression:
@@ -64,6 +69,10 @@ func (e *Evaluator) evalRequest(program *ast.Request) object.Object {
 
 	for _, statement := range program.Statements {
 		result = e.Eval(statement)
+
+		if isError(result) {
+			return result
+		}
 	}
 
 	return result
