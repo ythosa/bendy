@@ -2,7 +2,7 @@ package lexer
 
 import "github.com/ythosa/bendy/internal/evaluate/token"
 
-// Lexer is type for lexer which turns code into a sequence of tokens
+// Lexer is type for lexer which turns code into a sequence of tokens.
 type Lexer struct {
 	input        string
 	position     int  // current position in input (points to current char)
@@ -10,15 +10,15 @@ type Lexer struct {
 	ch           byte // current char under examination
 }
 
-// New returns new lexer
+// New returns new lexer.
 func New(input string) *Lexer {
-	l := Lexer{input: input}
+	l := Lexer{input: input} // nolint
 	l.readChar()
 
 	return &l
 }
 
-// NextToken returns next token of the code
+// NextToken returns next token of the code.
 func (l *Lexer) NextToken() token.Token {
 	var tok token.Token
 
@@ -63,6 +63,7 @@ func (l *Lexer) readChar() {
 	} else {
 		l.ch = l.input[l.readPosition]
 	}
+
 	l.position = l.readPosition
 	l.readPosition++
 }
@@ -71,14 +72,6 @@ func (l *Lexer) skipWhitespace() {
 	for l.ch == ' ' || l.ch == '\n' || l.ch == '\t' || l.ch == '\r' {
 		l.readChar()
 	}
-}
-
-func (l *Lexer) peekChar() byte {
-	if l.readPosition >= len(l.input) {
-		return 0
-	}
-
-	return l.input[l.readPosition]
 }
 
 func (l *Lexer) readString() string {
@@ -98,5 +91,5 @@ func (l *Lexer) readString() string {
 		str = append(str, l.ch)
 	}
 
-	return string(str[:])
+	return string(str)
 }

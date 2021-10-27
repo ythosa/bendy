@@ -1,28 +1,28 @@
 package token
 
-// Type is type of token
+// Type is type of token.
 type Type string
 
-// Token is type for token which contains type and literal
+// Token is type for token which contains type and literal.
 type Token struct {
 	Type    Type
 	Literal string
 }
 
-// Names of tokens
+// Names of tokens.
 const (
 	ILLEGAL = "ILLEGAL"
 	EOF     = "EOF"
 
-	// identifies
+	// identifies.
 	WORD = "WORD"
 
-	// operators
+	// operators.
 	AND = "&"
 	OR  = "|"
 	NOT = "!"
 
-	// Delimiters
+	// delimiters.
 	LPAREN    = "("
 	RPAREN    = ")"
 	SEMICOLON = ";"

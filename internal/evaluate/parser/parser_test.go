@@ -16,7 +16,8 @@ func TestStringLiteralExpression(t *testing.T) {
 	program := p.ParseRequest()
 	checkParserErrors(t, p)
 
-	stmt := program.Statements[0].(*ast.ExpressionStatement)
+	stmt, _ := program.Statements[0].(*ast.ExpressionStatement)
+
 	literal, ok := stmt.Expression.(*ast.WordLiteral)
 	if !ok {
 		t.Fatalf("stmt.Expression is not ast.StringLiteral. got=%T",
@@ -112,9 +113,12 @@ func testInfixExpression(t *testing.T,
 	operator string,
 	right interface{},
 ) bool {
+	t.Helper()
+
 	opExp, ok := exp.(*ast.InfixExpression)
 	if !ok {
 		t.Errorf("exp is not ast.InfixExpression. got=%T(%s)", exp, exp)
+
 		return false
 	}
 
@@ -124,6 +128,7 @@ func testInfixExpression(t *testing.T,
 
 	if opExp.Operator != operator {
 		t.Errorf("exp.Operator is not '%s'. got=%q", operator, opExp.Operator)
+
 		return false
 	}
 
@@ -139,32 +144,39 @@ func testLiteralExpression(
 	exp ast.Expression,
 	expected interface{},
 ) bool {
+	t.Helper()
+
 	switch v := expected.(type) {
 	case string:
 		return testWordLiteral(t, exp, v)
+	default:
+		t.Errorf("type of exp not handled. got=%T", exp)
+
+		return false
 	}
-
-	t.Errorf("type of exp not handled. got=%T", exp)
-
-	return false
 }
 
 func testWordLiteral(t *testing.T, exp ast.Expression, value string) bool {
+	t.Helper()
+
 	ident, ok := exp.(*ast.WordLiteral)
 
 	if !ok {
 		t.Errorf("exp not *ast.Identifier. got=%T", exp)
+
 		return false
 	}
 
 	if ident.Value != value {
 		t.Errorf("ident.Value not %s. got=%s", value, ident.Value)
+
 		return false
 	}
 
 	if ident.TokenLiteral() != value {
 		t.Errorf("ident.TokenLiteral not %s. got=%s", value,
 			ident.TokenLiteral())
+
 		return false
 	}
 
@@ -172,6 +184,8 @@ func testWordLiteral(t *testing.T, exp ast.Expression, value string) bool {
 }
 
 func checkParserErrors(t *testing.T, p *parser.Parser) {
+	t.Helper()
+
 	errors := p.Errors()
 
 	if len(errors) == 0 {
@@ -179,9 +193,11 @@ func checkParserErrors(t *testing.T, p *parser.Parser) {
 	}
 
 	t.Errorf("parser has %d errors", len(errors))
+
 	for _, msg := range errors {
 		t.Errorf("parser error: %q", msg)
 	}
+
 	t.FailNow()
 }
 

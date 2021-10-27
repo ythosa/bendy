@@ -8,7 +8,7 @@ import (
 	"github.com/ythosa/bendy/internal/evaluate/token"
 )
 
-// Parser is type for parser which turns sequense of tokens into AST tree
+// Parser is type for parser which turns sequense of tokens into AST tree.
 type Parser struct {
 	l *lexer.Lexer
 
@@ -26,19 +26,19 @@ type (
 	infixParseFn  func(ast.Expression) ast.Expression
 )
 
-// New returns new parser object
+// New returns new parser object.
 func New(l *lexer.Lexer) *Parser {
-	p := &Parser{
-		l:      l,
-		errors: []string{},
+	p := &Parser{ // nolint
+		l:              l,
+		prefixParseFns: make(map[token.Type]prefixParseFn),
+		infixParseFns:  make(map[token.Type]infixParseFn),
+		errors:         []string{},
 	}
 
-	p.prefixParseFns = make(map[token.Type]prefixParseFn)
 	p.registerPrefix(token.WORD, p.parseWordLiteral)
 	p.registerPrefix(token.NOT, p.parsePrefixExpression)
 	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)
 
-	p.infixParseFns = make(map[token.Type]infixParseFn)
 	p.registerInfix(token.AND, p.parseInfixExpression)
 	p.registerInfix(token.OR, p.parseInfixExpression)
 
@@ -49,7 +49,7 @@ func New(l *lexer.Lexer) *Parser {
 	return p
 }
 
-// Errors return errors while parsing
+// Errors return errors while parsing.
 func (p *Parser) Errors() []string {
 	return p.errors
 }
@@ -73,24 +73,20 @@ func (p *Parser) registerInfix(tokenType token.Type, fn infixParseFn) {
 	p.infixParseFns[tokenType] = fn
 }
 
-// ParseRequest is parsing sequence of tokens and returns AST tree of program
+// ParseRequest is parsing sequence of tokens and returns AST tree of program.
 func (p *Parser) ParseRequest() *ast.Request {
-	program := &ast.Request{}
-	program.Statements = []ast.Statement{}
+	program := &ast.Request{Statements: []ast.Statement{}}
 
 	for p.curToken.Type != token.EOF {
 		stmt := p.parseExpressionStatement()
 		if stmt != nil {
 			program.Statements = append(program.Statements, stmt)
 		}
+
 		p.nextToken()
 	}
 
 	return program
-}
-
-func (p *Parser) curTokenIs(t token.Type) bool {
-	return p.curToken.Type == t
 }
 
 func (p *Parser) peekTokenIs(t token.Type) bool {
@@ -100,30 +96,34 @@ func (p *Parser) peekTokenIs(t token.Type) bool {
 func (p *Parser) expectPeek(t token.Type) bool {
 	if !p.peekTokenIs(t) {
 		p.peekError(t)
+
 		return false
 	}
 
 	p.nextToken()
+
 	return true
 }
 
-// Priorities of parsing operators
+// Priorities of parsing operators.
 const (
 	_ int = iota
 	LOWEST
-	OR  // |
-	AND // &
+	OR     // |
+	AND    // &
 	PREFIX // !
 )
 
-var precedences = map[token.Type]int{
-	token.OR:  OR,
-	token.AND: AND,
-	token.NOT: PREFIX,
+func getPrecedences() map[token.Type]int {
+	return map[token.Type]int{
+		token.OR:  OR,
+		token.AND: AND,
+		token.NOT: PREFIX,
+	}
 }
 
 func (p *Parser) peekPrecedence() int {
-	if p, ok := precedences[p.peekToken.Type]; ok {
+	if p, ok := getPrecedences()[p.peekToken.Type]; ok {
 		return p
 	}
 
@@ -131,7 +131,7 @@ func (p *Parser) peekPrecedence() int {
 }
 
 func (p *Parser) curPrecedence() int {
-	if p, ok := precedences[p.curToken.Type]; ok {
+	if p, ok := getPrecedences()[p.curToken.Type]; ok {
 		return p
 	}
 
@@ -139,9 +139,7 @@ func (p *Parser) curPrecedence() int {
 }
 
 func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
-	//defer untrace(trace("parseExpressionStatement"))
-
-	stmt := &ast.ExpressionStatement{Token: p.curToken}
+	stmt := &ast.ExpressionStatement{Token: p.curToken, Expression: nil}
 
 	stmt.Expression = p.parseExpression(LOWEST)
 
@@ -158,14 +156,14 @@ func (p *Parser) noPrefixParseFnError(t token.Type) {
 }
 
 func (p *Parser) parseExpression(precedence int) ast.Expression {
-	//defer untrace(trace("parseExpression"))
-
 	prefix := p.prefixParseFns[p.curToken.Type]
 
 	if prefix == nil {
 		p.noPrefixParseFnError(p.curToken.Type)
+
 		return nil
 	}
+
 	leftExp := prefix()
 
 	for !p.peekTokenIs(token.SEMICOLON) && precedence < p.peekPrecedence() {
@@ -183,11 +181,10 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 }
 
 func (p *Parser) parsePrefixExpression() ast.Expression {
-	//defer untrace(trace("parsePrefixExpression"))
-
 	expression := &ast.PrefixExpression{
 		Token:    p.curToken,
 		Operator: p.curToken.Literal,
+		Right:    nil,
 	}
 
 	p.nextToken()
@@ -197,12 +194,11 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 }
 
 func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
-	//defer untrace(trace("parseInfixExpression"))
-
 	expression := &ast.InfixExpression{
 		Token:    p.curToken,
 		Left:     left,
 		Operator: p.curToken.Literal,
+		Right:    nil,
 	}
 
 	precedence := p.curPrecedence()
@@ -213,7 +209,6 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 }
 
 func (p *Parser) parseWordLiteral() ast.Expression {
-	//defer untrace(trace("parseWordLiteral"))
 	return &ast.WordLiteral{
 		Token: p.curToken,
 		Value: p.curToken.Literal,
