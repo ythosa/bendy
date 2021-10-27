@@ -28,7 +28,7 @@ type (
 
 // New returns new parser object.
 func New(l *lexer.Lexer) *Parser {
-	p := &Parser{ // nolint
+	p := &Parser{
 		l:              l,
 		prefixParseFns: make(map[token.Type]prefixParseFn),
 		infixParseFns:  make(map[token.Type]infixParseFn),
