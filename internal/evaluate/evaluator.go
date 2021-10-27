@@ -14,7 +14,11 @@ type Evaluator struct {
 	AllDocIDs   *list.List
 }
 
-// Eval evaluates node of AST tree
+func NewEvaluator(invertIndex indexer.InvertIndex, allDocIDs *list.List) *Evaluator {
+	return &Evaluator{InvertIndex: invertIndex, AllDocIDs: allDocIDs}
+}
+
+// Eval evaluates node of AST tree.
 func (e *Evaluator) Eval(node ast.Node) object.Object {
 	switch node := node.(type) {
 	// Statements
