@@ -41,10 +41,10 @@ func (s *DocIDs) Inspect() string {
 	buffer.WriteString("[")
 
 	for e := s.Value.Front(); e != nil; e = e.Next() {
-		buffer.WriteString(fmt.Sprintf("%d ", e.Value))
+		buffer.WriteString(fmt.Sprintf("%d, ", e.Value))
 	}
 
-	buffer.WriteString("]")
+	buffer.WriteString("\b\b]")
 
 	return buffer.String()
 }
