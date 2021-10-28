@@ -11,7 +11,7 @@ import (
 
 const (
 	configsFolderPathEnv     = "BENDY_CONFIGS_FOLDER_PATH"
-	defaultConfigsFolderPath = "/home/ythosa/Projects/bendy/configs"
+	defaultConfigsFolderPath = "../../configs"
 	configNameEnv            = "BENDY_CONFIG_NAME"
 	defaultConfigName        = "default"
 )
