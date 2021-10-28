@@ -7,16 +7,16 @@ import (
 	"github.com/ythosa/bendy/internal/evaluate/lexer"
 	"github.com/ythosa/bendy/internal/evaluate/object"
 	"github.com/ythosa/bendy/internal/evaluate/parser"
-	"github.com/ythosa/bendy/internal/indexer"
+	"github.com/ythosa/bendy/internal/index"
 )
 
 func getTestEvaluatorObject() *evaluate.Evaluator {
-	ii := make(indexer.InvertIndex)
-	ii["kek"] = indexer.SliceToList([]indexer.DocID{1, 3, 5})
-	ii["lol"] = indexer.SliceToList([]indexer.DocID{2, 3, 4})
-	ii["puk"] = indexer.SliceToList([]indexer.DocID{6})
+	ii := make(index.InvertIndex)
+	ii["kek"] = index.SliceToList([]index.DocID{1, 3, 5})
+	ii["lol"] = index.SliceToList([]index.DocID{2, 3, 4})
+	ii["puk"] = index.SliceToList([]index.DocID{6})
 
-	e := evaluate.NewEvaluator(ii, indexer.SliceToList([]indexer.DocID{1, 2, 3, 4, 5, 6, 7}))
+	e := evaluate.NewEvaluator(ii, index.SliceToList([]index.DocID{1, 2, 3, 4, 5, 6, 7}))
 
 	return e
 }
@@ -32,36 +32,36 @@ func testEval(input string) object.Object {
 func TestEvaluator_Eval(t *testing.T) {
 	testCases := []struct {
 		input    string
-		expected []indexer.DocID
+		expected []index.DocID
 	}{
 		{
 			input:    `"kek" & "lol"`,
-			expected: []indexer.DocID{3},
+			expected: []index.DocID{3},
 		},
 		{
 			input:    `"kek" | "lol"`,
-			expected: []indexer.DocID{1, 2, 3, 4, 5},
+			expected: []index.DocID{1, 2, 3, 4, 5},
 		},
 		{
 			input:    `"kek" & !"lol"`,
-			expected: []indexer.DocID{1, 5},
+			expected: []index.DocID{1, 5},
 		},
 		{
 			input:    `"kek" | !"puk"`,
-			expected: []indexer.DocID{1, 2, 3, 4, 5, 7},
+			expected: []index.DocID{1, 2, 3, 4, 5, 7},
 		},
 		{
 			input:    `!"kek" & ("lol" | "puk")`,
-			expected: []indexer.DocID{2, 4, 6},
+			expected: []index.DocID{2, 4, 6},
 		},
 		{
 			input:    `"kek" & "ya kto"`,
-			expected: []indexer.DocID{},
+			expected: []index.DocID{},
 		},
 	}
 
 	for _, tc := range testCases {
 		evaluated := testEval(tc.input)
-		indexer.CompareLists(t, indexer.SliceToList(tc.expected), evaluated.(*object.DocIDs).Value)
+		index.CompareLists(t, index.SliceToList(tc.expected), evaluated.(*object.DocIDs).Value)
 	}
 }

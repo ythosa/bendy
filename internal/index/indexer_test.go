@@ -1,4 +1,4 @@
-package indexer_test
+package index_test
 
 import (
 	"testing"
@@ -6,14 +6,14 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ythosa/bendy/internal/config"
-	"github.com/ythosa/bendy/internal/indexer"
+	"github.com/ythosa/bendy/internal/index"
 	"github.com/ythosa/bendy/internal/normalizer"
 )
 
 func TestNewIndexer(t *testing.T) {
 	t.Parallel()
 
-	ix := indexer.NewIndexer(normalizer.NewEnglishNormalizer(), config.Get().Index)
+	ix := index.NewIndexer(normalizer.NewEnglishNormalizer(), config.Get().Index)
 
 	assert.NotNil(t, ix)
 }

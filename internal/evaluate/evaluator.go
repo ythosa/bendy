@@ -6,15 +6,15 @@ import (
 
 	"github.com/ythosa/bendy/internal/evaluate/ast"
 	"github.com/ythosa/bendy/internal/evaluate/object"
-	"github.com/ythosa/bendy/internal/indexer"
+	"github.com/ythosa/bendy/internal/index"
 )
 
 type Evaluator struct {
-	InvertIndex indexer.InvertIndex
+	InvertIndex index.InvertIndex
 	AllDocIDs   *list.List
 }
 
-func NewEvaluator(invertIndex indexer.InvertIndex, allDocIDs *list.List) *Evaluator {
+func NewEvaluator(invertIndex index.InvertIndex, allDocIDs *list.List) *Evaluator {
 	return &Evaluator{InvertIndex: invertIndex, AllDocIDs: allDocIDs}
 }
 
@@ -90,7 +90,7 @@ func (e *Evaluator) evalPrefixExpression(operator string, right object.Object) o
 func (e *Evaluator) evalNotOperatorExpression(right object.Object) object.Object {
 	switch right.Type() {
 	case object.DocIDsObj:
-		return &object.DocIDs{Value: indexer.Invert(right.(*object.DocIDs).Value, e.AllDocIDs)}
+		return &object.DocIDs{Value: index.Invert(right.(*object.DocIDs).Value, e.AllDocIDs)}
 	default:
 		return newError("unknown operator: ! %s", right.Type())
 	}
@@ -117,9 +117,9 @@ func evalInfixDocIDsExpression(
 
 	switch operator {
 	case "&":
-		return &object.DocIDs{Value: indexer.Cap(leftVal, rightVal)}
+		return &object.DocIDs{Value: index.Cap(leftVal, rightVal)}
 	case "|":
-		return &object.DocIDs{Value: indexer.Cup(leftVal, rightVal)}
+		return &object.DocIDs{Value: index.Cup(leftVal, rightVal)}
 	default:
 		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}

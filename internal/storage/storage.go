@@ -4,7 +4,7 @@ import "container/list"
 
 type Index interface {
 	Get() (map[string]*list.List, error)
-	Update(index map[string]*list.List) error
+	Set(index map[string]*list.List) error
 }
 
 type Files interface {
