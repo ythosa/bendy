@@ -9,7 +9,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/ythosa/bendy/internal/index"
-	"github.com/ythosa/bendy/pkg/utils"
 )
 
 type IndexImpl struct {
@@ -44,11 +43,7 @@ func (i *IndexImpl) Get() (map[string]*list.List, error) {
 func (i *IndexImpl) Set(idx map[string]*list.List) error {
 	file, err := os.Create(i.indexStoragePath)
 	if err != nil {
-		if file, err = os.Create(i.indexStoragePath); err != nil {
-			logrus.Error(err)
-
-			return ErrCreatingDataFile
-		}
+		return ErrCreatingDataFile
 	}
 
 	indexOnSlices := index.MapOnListsToMapOnSlices(idx)
@@ -61,38 +56,6 @@ func (i *IndexImpl) Set(idx map[string]*list.List) error {
 	}
 
 	if _, err := file.Write(s); err != nil {
-		logrus.Error(err)
-
-		return ErrWritingToDataFile
-	}
-
-	_ = file.Close()
-
-	return nil
-}
-
-func (i *IndexImpl) isDataFileExists() error {
-	return utils.CheckIsFilePathsValid([]string{i.indexStoragePath})
-}
-
-func (i *IndexImpl) createEmptyDataFile() error {
-	file, err := os.Create(i.indexStoragePath)
-	if err != nil {
-		logrus.Error(err)
-
-		return ErrCreatingDataFile
-	}
-
-	emptyData := make(map[string][]index.DocID)
-
-	s, err := json.Marshal(emptyData)
-	if err != nil {
-		logrus.Error(err)
-
-		return ErrMarshallingData
-	}
-
-	if _, err := file.WriteString(string(s)); err != nil {
 		logrus.Error(err)
 
 		return ErrWritingToDataFile

@@ -12,6 +12,9 @@ linters:
     - gci
     - paralleltest
     - exhaustivestruct
+    - gochecknoglobals
+    - gochecknoinits
+    - forbidigo
 
 linters-settings:
   funlen:

@@ -57,6 +57,7 @@ var replCmd = &cobra.Command{
 			request := p.ParseRequest()
 			if len(p.Errors()) != 0 {
 				printParserErrors(os.Stdout, p.Errors())
+
 				continue
 			}
 
@@ -78,11 +79,11 @@ func printParserErrors(out io.Writer, errors []string) {
 func getAllDocIDs() (*list.List, error) {
 	files, err := storage.Files.Get()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error while getting all files: %w", err)
 	}
 
 	docIDs := make([]index.DocID, len(files))
-	for i, _ := range files {
+	for i := range files {
 		docIDs[i] = index.DocID(i)
 	}
 

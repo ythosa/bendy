@@ -19,7 +19,7 @@ func NewFilesImpl(indexingFilesFilenamesPath string) *FilesImpl {
 }
 
 func (f *FilesImpl) Get() ([]string, error) {
-	if err := f.isDataFileExists(); err != nil {
+	if !f.isDataFileExists() {
 		if err := f.createEmptyDataFile(); err != nil {
 			return nil, err
 		}
@@ -97,8 +97,8 @@ func (f *FilesImpl) update(filenames []string) error {
 	return nil
 }
 
-func (f *FilesImpl) isDataFileExists() error {
-	return utils.CheckIsFilePathsValid([]string{f.indexingFilesFilenamesPath})
+func (f *FilesImpl) isDataFileExists() bool {
+	return utils.CheckIsFilePathsValid([]string{f.indexingFilesFilenamesPath}) == nil
 }
 
 func (f *FilesImpl) createEmptyDataFile() error {
