@@ -11,9 +11,10 @@ func init() {
 }
 
 var addFileToIndexCmd = &cobra.Command{
-	Use:   "add",
-	Short: "Adds file to index",
-	Args:  cobra.ExactArgs(1),
+	Use:     "add",
+	Aliases: []string{"a"},
+	Short:   "Adds file to index",
+	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		filename := args[0]
 
