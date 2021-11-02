@@ -4,49 +4,68 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+
+	"github.com/ythosa/bendy/internal/index"
+	"github.com/ythosa/bendy/internal/storage"
 )
 
-func init() {
-	rootCmd.AddCommand(addFileToIndexCmd)
+type AddFileCommand struct {
+	filesStorage storage.Files
+	indexStorage storage.Index
+	indexer      *index.Indexer
 }
 
-var addFileToIndexCmd = &cobra.Command{
-	Use:     "add",
-	Aliases: []string{"a"},
-	Short:   "Adds file to index",
-	Args:    cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		filename := args[0]
+func NewAddFileCommand(
+	filesStorage storage.Files,
+	indexStorage storage.Index,
+	indexer *index.Indexer,
+) *AddFileCommand {
+	return &AddFileCommand{
+		filesStorage: filesStorage,
+		indexStorage: indexStorage,
+		indexer:      indexer,
+	}
+}
 
-		fmt.Printf("Adding file %s...\n", filename)
+func (a *AddFileCommand) getCLI() *cobra.Command {
+	return &cobra.Command{
+		Use:     "add",
+		Aliases: []string{"a"},
+		Short:   "Adds file to index",
+		Args:    cobra.ExactArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			filename := args[0]
 
-		if err := storage.Put(filename); err != nil {
-			fmt.Printf("Error while adding file to index: %s", err)
+			fmt.Printf("Adding file %s...\n", filename)
 
-			return
-		}
+			if err := a.filesStorage.Put(filename); err != nil {
+				fmt.Printf("Error while adding file to index: %s", err)
 
-		files, err := storage.Files.Get()
-		if err != nil {
-			fmt.Printf("Error while getting files to index: %s", err)
+				return
+			}
 
-			return
-		}
+			files, err := a.filesStorage.Get()
+			if err != nil {
+				fmt.Printf("Error while getting files to index: %s", err)
 
-		i, err := indexer.IndexFiles(files)
-		if err != nil {
-			fmt.Printf("Error while indexing files: %s", err)
-			_ = storage.Files.Delete(filename)
+				return
+			}
 
-			return
-		}
+			i, err := a.indexer.IndexFiles(files)
+			if err != nil {
+				fmt.Printf("Error while indexing files: %s", err)
+				_ = a.filesStorage.Delete(filename)
 
-		if err := storage.Index.Set(i); err != nil {
-			fmt.Printf("Error while updating indexes: %s", err)
+				return
+			}
 
-			return
-		}
+			if err := a.indexStorage.Set(i); err != nil {
+				fmt.Printf("Error while updating indexes: %s", err)
 
-		fmt.Printf("File successfully added")
-	},
+				return
+			}
+
+			fmt.Printf("File successfully added")
+		},
+	}
 }

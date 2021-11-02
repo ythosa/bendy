@@ -5,27 +5,33 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-
-	"github.com/ythosa/bendy/internal/config"
-	"github.com/ythosa/bendy/internal/decoding"
-	"github.com/ythosa/bendy/internal/index"
-	"github.com/ythosa/bendy/internal/normalizing"
-	"github.com/ythosa/bendy/internal/storage/filestorage"
 )
 
-var (
-	storage = filestorage.NewStorage(config.Get().Storage)
-	indexer = index.NewIndexer(decoding.NewDecoderImpl(), normalizing.NewNormalizerImpl(), config.Get().Index)
-)
-
-var rootCmd = &cobra.Command{
-	Use:   "bendy",
-	Short: "Bendy is bool search engine",
-	Long:  `Bendy is bool search engine :)`,
+type RootCommand struct {
+	commands []Command
 }
 
-func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+func NewRootCommand(commands []Command) *RootCommand {
+	return &RootCommand{commands: commands}
+}
+
+func (r *RootCommand) getCLI() *cobra.Command {
+	root := &cobra.Command{
+		Use:   "bendy",
+		Short: "Bendy is bool search engine",
+		Long: `Bendy is bool search engine. 
+You can help with the development here: https://github.com/ythosa/bendy.`,
+	}
+
+	for _, command := range r.commands {
+		root.AddCommand(command.getCLI())
+	}
+
+	return root
+}
+
+func (r *RootCommand) Execute() {
+	if err := r.getCLI().Execute(); err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}

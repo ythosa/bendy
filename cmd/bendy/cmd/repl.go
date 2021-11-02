@@ -13,61 +13,67 @@ import (
 	"github.com/ythosa/bendy/internal/eval/lexer"
 	"github.com/ythosa/bendy/internal/eval/parser"
 	"github.com/ythosa/bendy/internal/index"
+	"github.com/ythosa/bendy/internal/storage"
 )
 
-const prompt = ">> "
-
-func init() {
-	rootCmd.AddCommand(replCmd)
+type REPLCommand struct {
+	filesStorage storage.Files
+	indexStorage storage.Index
 }
 
-var replCmd = &cobra.Command{
-	Use:   "repl",
-	Short: "Returns indexing files",
-	Args:  cobra.NoArgs,
-	Run: func(cmd *cobra.Command, args []string) {
-		i, err := storage.Index.Get()
-		if err != nil {
-			fmt.Printf("Error while getting indexes: %s", err)
+func NewReplCommand(filesStorage storage.Files, indexStorage storage.Index) *REPLCommand {
+	return &REPLCommand{filesStorage: filesStorage, indexStorage: indexStorage}
+}
 
-			return
-		}
+func (r *REPLCommand) getCLI() *cobra.Command {
+	return &cobra.Command{
+		Use:   "repl",
+		Short: "Returns indexing files",
+		Args:  cobra.NoArgs,
+		Run: func(cmd *cobra.Command, args []string) {
+			i, err := r.indexStorage.Get()
+			if err != nil {
+				fmt.Printf("Error while getting indexes: %s", err)
 
-		docIDs, err := getAllDocIDs()
-		if err != nil {
-			fmt.Printf("Error getting all doc ids: %s", err)
-
-			return
-		}
-
-		evaluator := eval.NewEvaluator(i, docIDs)
-
-		scanner := bufio.NewScanner(os.Stdin)
-		for {
-			fmt.Print(prompt)
-			scanned := scanner.Scan()
-			if !scanned {
 				return
 			}
 
-			line := scanner.Text()
-			l := lexer.New(line)
-			p := parser.New(l)
+			files, err := r.filesStorage.Get()
+			if err != nil {
+				fmt.Printf("Error while getting all files: %s", err)
 
-			request := p.ParseRequest()
-			if len(p.Errors()) != 0 {
-				printParserErrors(os.Stdout, p.Errors())
-
-				continue
+				return
 			}
 
-			evaluated := evaluator.Eval(request)
-			if evaluated != nil {
-				_, _ = io.WriteString(os.Stdout, evaluated.Inspect())
-				_, _ = io.WriteString(os.Stdout, "\n")
+			evaluator := eval.NewEvaluator(i, getAllDocIDs(files))
+
+			scanner := bufio.NewScanner(os.Stdin)
+			for {
+				fmt.Print(">> ")
+				scanned := scanner.Scan()
+				if !scanned {
+					return
+				}
+
+				line := scanner.Text()
+				l := lexer.New(line)
+				p := parser.New(l)
+
+				request := p.ParseRequest()
+				if len(p.Errors()) != 0 {
+					printParserErrors(os.Stdout, p.Errors())
+
+					continue
+				}
+
+				evaluated := evaluator.Eval(request)
+				if evaluated != nil {
+					_, _ = io.WriteString(os.Stdout, evaluated.Inspect())
+					_, _ = io.WriteString(os.Stdout, "\n")
+				}
 			}
-		}
-	},
+		},
+	}
 }
 
 func printParserErrors(out io.Writer, errors []string) {
@@ -76,16 +82,11 @@ func printParserErrors(out io.Writer, errors []string) {
 	}
 }
 
-func getAllDocIDs() (*list.List, error) {
-	files, err := storage.Files.Get()
-	if err != nil {
-		return nil, fmt.Errorf("error while getting all files: %w", err)
-	}
-
+func getAllDocIDs(files []string) *list.List {
 	docIDs := make([]index.DocID, len(files))
 	for i := range files {
 		docIDs[i] = index.DocID(i)
 	}
 
-	return index.SliceToList(docIDs), nil
+	return index.SliceToList(docIDs)
 }
