@@ -11,6 +11,7 @@ import (
 
 	"github.com/ythosa/bendy/internal/eval"
 	"github.com/ythosa/bendy/internal/eval/lexer"
+	"github.com/ythosa/bendy/internal/eval/object"
 	"github.com/ythosa/bendy/internal/eval/parser"
 	"github.com/ythosa/bendy/internal/index"
 	"github.com/ythosa/bendy/internal/storage"
@@ -67,9 +68,11 @@ func (r *REPLCommand) getCLI() *cobra.Command {
 				}
 
 				evaluated := evaluator.Eval(request)
-				if evaluated != nil {
-					_, _ = io.WriteString(os.Stdout, evaluated.Inspect())
-					_, _ = io.WriteString(os.Stdout, "\n")
+				switch v := evaluated.(type) {
+				case *object.DocIDs:
+					printDocuments(files, v.Value)
+				default:
+					_, _ = fmt.Fprintf(os.Stdout, "%s\n", evaluated.Inspect())
 				}
 			}
 		},
@@ -79,6 +82,13 @@ func (r *REPLCommand) getCLI() *cobra.Command {
 func printParserErrors(out io.Writer, errors []string) {
 	for _, msg := range errors {
 		_, _ = io.WriteString(out, "\t"+msg+"\n")
+	}
+}
+
+func printDocuments(files []string, docIDs *list.List) {
+	for e := docIDs.Front(); e != nil; e = e.Next() {
+		docID, _ := e.Value.(index.DocID)
+		_, _ = fmt.Fprintf(os.Stdout, "%d) %s\n", docID, files[docID])
 	}
 }
 
