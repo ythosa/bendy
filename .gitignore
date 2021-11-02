@@ -4,7 +4,7 @@
 *.dll
 *.so
 *.dylib
-bendy
+./bendy
 
 # Test binary, built with `go test -c`
 *.test
