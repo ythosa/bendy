@@ -9,9 +9,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/ythosa/bendy/internal/evaluate"
-	"github.com/ythosa/bendy/internal/evaluate/lexer"
-	"github.com/ythosa/bendy/internal/evaluate/parser"
+	"github.com/ythosa/bendy/internal/eval"
+	"github.com/ythosa/bendy/internal/eval/lexer"
+	"github.com/ythosa/bendy/internal/eval/parser"
 	"github.com/ythosa/bendy/internal/index"
 )
 
@@ -40,7 +40,7 @@ var replCmd = &cobra.Command{
 			return
 		}
 
-		evaluator := evaluate.NewEvaluator(i, docIDs)
+		evaluator := eval.NewEvaluator(i, docIDs)
 
 		scanner := bufio.NewScanner(os.Stdin)
 		for {

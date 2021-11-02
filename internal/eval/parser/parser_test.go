@@ -3,9 +3,9 @@ package parser_test
 import (
 	"testing"
 
-	"github.com/ythosa/bendy/internal/evaluate/ast"
-	"github.com/ythosa/bendy/internal/evaluate/lexer"
-	"github.com/ythosa/bendy/internal/evaluate/parser"
+	"github.com/ythosa/bendy/internal/eval/ast"
+	"github.com/ythosa/bendy/internal/eval/lexer"
+	"github.com/ythosa/bendy/internal/eval/parser"
 )
 
 func TestStringLiteralExpression(t *testing.T) {

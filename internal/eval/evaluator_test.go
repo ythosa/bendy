@@ -1,22 +1,22 @@
-package evaluate_test
+package eval_test
 
 import (
 	"testing"
 
-	"github.com/ythosa/bendy/internal/evaluate"
-	"github.com/ythosa/bendy/internal/evaluate/lexer"
-	"github.com/ythosa/bendy/internal/evaluate/object"
-	"github.com/ythosa/bendy/internal/evaluate/parser"
+	"github.com/ythosa/bendy/internal/eval"
+	"github.com/ythosa/bendy/internal/eval/lexer"
+	"github.com/ythosa/bendy/internal/eval/object"
+	"github.com/ythosa/bendy/internal/eval/parser"
 	"github.com/ythosa/bendy/internal/index"
 )
 
-func getTestEvaluatorObject() *evaluate.Evaluator {
+func getTestEvaluatorObject() *eval.Evaluator {
 	ii := make(index.InvertIndex)
-	ii["kek"] = index.SliceToList([]index.DocID{1, 3, 5})
-	ii["lol"] = index.SliceToList([]index.DocID{2, 3, 4})
-	ii["puk"] = index.SliceToList([]index.DocID{6})
+	ii["kek"] = index.NewIndex(index.SliceToList([]index.DocID{1, 3, 5}))
+	ii["lol"] = index.NewIndex(index.SliceToList([]index.DocID{2, 3, 4}))
+	ii["puk"] = index.NewIndex(index.SliceToList([]index.DocID{6}))
 
-	e := evaluate.NewEvaluator(ii, index.SliceToList([]index.DocID{1, 2, 3, 4, 5, 6, 7}))
+	e := eval.NewEvaluator(ii, index.SliceToList([]index.DocID{1, 2, 3, 4, 5, 6, 7}))
 
 	return e
 }

@@ -1,10 +1,12 @@
 package storage
 
-import "container/list"
+import (
+	"github.com/ythosa/bendy/internal/index"
+)
 
 type Index interface {
-	Get() (map[string]*list.List, error)
-	Set(index map[string]*list.List) error
+	Get() (index.InvertIndex, error)
+	Set(index index.InvertIndex) error
 }
 
 type Files interface {

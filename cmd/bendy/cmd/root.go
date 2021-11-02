@@ -7,14 +7,15 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/ythosa/bendy/internal/config"
+	"github.com/ythosa/bendy/internal/decoding"
 	"github.com/ythosa/bendy/internal/index"
-	"github.com/ythosa/bendy/internal/normalizer"
+	"github.com/ythosa/bendy/internal/normalizing"
 	"github.com/ythosa/bendy/internal/storage/filestorage"
 )
 
 var (
 	storage = filestorage.NewStorage(config.Get().Storage)
-	indexer = index.NewIndexer(normalizer.NewEnglishNormalizer(), config.Get().Index)
+	indexer = index.NewIndexer(decoding.NewDecoderImpl(), normalizing.NewNormalizerImpl(), config.Get().Index)
 )
 
 var rootCmd = &cobra.Command{

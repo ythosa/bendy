@@ -1,6 +1,6 @@
 package lexer
 
-import "github.com/ythosa/bendy/internal/evaluate/token"
+import "github.com/ythosa/bendy/internal/eval/token"
 
 // Lexer is type for lexer which turns code into a sequence of tokens.
 type Lexer struct {

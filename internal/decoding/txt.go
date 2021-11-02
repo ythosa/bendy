@@ -1,22 +1,22 @@
-package decoder
+package decoding
 
 import (
 	"bufio"
 	"io"
 )
 
-type TXTDecoder struct {
+type txtStrategy struct {
 	scanner *bufio.Scanner
 }
 
-func NewTXTDecoder(file io.Reader) *TXTDecoder {
+func newTXTDecoder(file io.Reader) *txtStrategy {
 	scanner := bufio.NewScanner(file)
 	scanner.Split(bufio.ScanWords)
 
-	return &TXTDecoder{scanner: scanner}
+	return &txtStrategy{scanner: scanner}
 }
 
-func (d *TXTDecoder) DecodeNext() (string, bool) {
+func (d *txtStrategy) DecodeNext() (string, bool) {
 	if d.scanner.Scan() {
 		return d.scanner.Text(), true
 	}

@@ -1,17 +1,17 @@
-package normalizer
+package normalizing
 
 import (
 	"strings"
 	"unicode"
 )
 
-type EnglishNormalizer struct{}
+type englishNormalizer struct{}
 
-func NewEnglishNormalizer() *EnglishNormalizer {
-	return &EnglishNormalizer{}
+func newEnglishNormalizer() *englishNormalizer {
+	return &englishNormalizer{}
 }
 
-func (n *EnglishNormalizer) Normalize(s string) string {
+func (n *englishNormalizer) Normalize(s string) string {
 	var normalized strings.Builder
 
 	for _, c := range s {

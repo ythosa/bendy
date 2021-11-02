@@ -7,7 +7,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/ythosa/bendy/pkg/utils"
+	"github.com/ythosa/bendy/pkg/fcheck"
 )
 
 type FilesImpl struct {
@@ -98,7 +98,7 @@ func (f *FilesImpl) update(filenames []string) error {
 }
 
 func (f *FilesImpl) isDataFileExists() bool {
-	return utils.CheckIsFilePathsValid([]string{f.indexingFilesFilenamesPath}) == nil
+	return fcheck.CheckIsFilePathsValid([]string{f.indexingFilesFilenamesPath}) == nil
 }
 
 func (f *FilesImpl) createEmptyDataFile() error {

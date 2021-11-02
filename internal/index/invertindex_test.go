@@ -1,10 +1,54 @@
 package index_test
 
 import (
+	"container/list"
 	"testing"
 
 	"github.com/ythosa/bendy/internal/index"
 )
+
+func TestIndex_Insert(t *testing.T) {
+	t.Parallel()
+
+	type args struct {
+		l     *list.List
+		docID index.DocID
+	}
+
+	testCases := []struct {
+		input    args
+		expected *list.List
+	}{
+		{
+			input: args{
+				l:     index.SliceToList([]index.DocID{1, 2, 5, 6}),
+				docID: 3,
+			},
+			expected: index.SliceToList([]index.DocID{1, 2, 3, 5, 6}),
+		},
+		{
+			input: args{
+				l:     index.SliceToList([]index.DocID{2}),
+				docID: 1,
+			},
+			expected: index.SliceToList([]index.DocID{1, 2}),
+		},
+		{
+			input: args{
+				l:     index.SliceToList([]index.DocID{2}),
+				docID: 3,
+			},
+			expected: index.SliceToList([]index.DocID{2, 3}),
+		},
+	}
+
+	for _, tc := range testCases {
+		i := index.NewIndex(tc.input.l)
+		i.Insert(tc.input.docID)
+
+		index.CompareLists(t, tc.expected, tc.input.l)
+	}
+}
 
 func TestCap(t *testing.T) {
 	t.Parallel()

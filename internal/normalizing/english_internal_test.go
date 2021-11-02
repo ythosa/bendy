@@ -1,11 +1,9 @@
-package normalizer_test
+package normalizing
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/ythosa/bendy/internal/normalizer"
 )
 
 func TestEnglishNormalizer_Normalize(t *testing.T) {
@@ -33,7 +31,7 @@ func TestEnglishNormalizer_Normalize(t *testing.T) {
 		},
 	}
 
-	englishNormalizer := normalizer.NewEnglishNormalizer()
+	englishNormalizer := newEnglishNormalizer()
 	for _, tc := range testCases {
 		assert.Equal(t, englishNormalizer.Normalize(tc.str), tc.expected)
 	}

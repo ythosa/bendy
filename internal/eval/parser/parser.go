@@ -3,9 +3,9 @@ package parser
 import (
 	"fmt"
 
-	"github.com/ythosa/bendy/internal/evaluate/ast"
-	"github.com/ythosa/bendy/internal/evaluate/lexer"
-	"github.com/ythosa/bendy/internal/evaluate/token"
+	"github.com/ythosa/bendy/internal/eval/ast"
+	"github.com/ythosa/bendy/internal/eval/lexer"
+	"github.com/ythosa/bendy/internal/eval/token"
 )
 
 // Parser is type for parser which turns sequense of tokens into AST tree.

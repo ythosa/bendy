@@ -1,7 +1,6 @@
 package filestorage
 
 import (
-	"container/list"
 	"encoding/json"
 	"io/ioutil"
 	"os"
@@ -19,7 +18,7 @@ func NewIndexImpl(indexStoragePath string) *IndexImpl {
 	return &IndexImpl{indexStoragePath: indexStoragePath}
 }
 
-func (i *IndexImpl) Get() (map[string]*list.List, error) {
+func (i *IndexImpl) Get() (index.InvertIndex, error) {
 	rawData, err := ioutil.ReadFile(i.indexStoragePath)
 	if err != nil {
 		if _, err := os.Create(i.indexStoragePath); err != nil {
@@ -28,7 +27,7 @@ func (i *IndexImpl) Get() (map[string]*list.List, error) {
 			return nil, ErrCreatingDataFile
 		}
 
-		return make(map[string]*list.List), nil
+		return make(index.InvertIndex), nil
 	}
 
 	var indexSlices map[string][]index.DocID
@@ -37,16 +36,16 @@ func (i *IndexImpl) Get() (map[string]*list.List, error) {
 		return nil, ErrUnmarshallingDataFile
 	}
 
-	return index.MapOnSlicesToMapOnLists(indexSlices), nil
+	return invertIndexFromDecoded(indexSlices), nil
 }
 
-func (i *IndexImpl) Set(idx map[string]*list.List) error {
+func (i *IndexImpl) Set(idx index.InvertIndex) error {
 	file, err := os.Create(i.indexStoragePath)
 	if err != nil {
 		return ErrCreatingDataFile
 	}
 
-	indexOnSlices := index.MapOnListsToMapOnSlices(idx)
+	indexOnSlices := invertIndexToEncoded(idx)
 
 	s, err := json.Marshal(indexOnSlices)
 	if err != nil {
@@ -64,4 +63,22 @@ func (i *IndexImpl) Set(idx map[string]*list.List) error {
 	_ = file.Close()
 
 	return nil
+}
+
+func invertIndexToEncoded(i index.InvertIndex) map[string][]index.DocID {
+	result := make(map[string][]index.DocID)
+	for k, v := range i {
+		result[k] = index.ListToSlice(v.DocIDs)
+	}
+
+	return result
+}
+
+func invertIndexFromDecoded(i map[string][]index.DocID) index.InvertIndex {
+	result := make(index.InvertIndex)
+	for k, v := range i {
+		result[k] = index.NewIndex(index.SliceToList(v))
+	}
+
+	return result
 }

@@ -1,4 +1,4 @@
-package utils_test
+package fcheck_test
 
 import (
 	"os"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/ythosa/bendy/pkg/utils"
+	"github.com/ythosa/bendy/pkg/fcheck"
 )
 
 func TestCheckIsFilePathsValid(t *testing.T) {
@@ -39,9 +39,9 @@ func TestCheckIsFilePathsValid(t *testing.T) {
 
 	for _, tc := range testCases {
 		if tc.expectedError {
-			assert.NotNil(t, utils.CheckIsFilePathsValid(tc.filePaths))
+			assert.NotNil(t, fcheck.CheckIsFilePathsValid(tc.filePaths))
 		} else {
-			assert.Nil(t, utils.CheckIsFilePathsValid(tc.filePaths))
+			assert.Nil(t, fcheck.CheckIsFilePathsValid(tc.filePaths))
 		}
 	}
 

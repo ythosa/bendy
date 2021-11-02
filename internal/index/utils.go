@@ -7,19 +7,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func SliceToList(slice []DocID) *list.List {
+	l := list.New()
+	for _, v := range slice {
+		l.PushBack(v)
+	}
+
+	return l
+}
+
 func ListToSlice(l *list.List) []DocID {
 	result := make([]DocID, 0)
 	for e := l.Front(); e != nil; e = e.Next() {
 		result = append(result, e.Value.(DocID))
-	}
-
-	return result
-}
-
-func MapOnListsToMapOnSlices(m map[string]*list.List) map[string][]DocID {
-	result := make(map[string][]DocID)
-	for k, v := range m {
-		result[k] = ListToSlice(v)
 	}
 
 	return result

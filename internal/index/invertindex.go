@@ -2,7 +2,35 @@ package index
 
 import "container/list"
 
-type InvertIndex map[string]*list.List
+type InvertIndex map[string]*Index
+
+type DocID uint32
+
+type Index struct {
+	DocIDs *list.List
+}
+
+func NewIndex(docIDs *list.List) *Index {
+	return &Index{DocIDs: docIDs}
+}
+
+func (i *Index) Insert(d DocID) {
+	var previousElement *list.Element
+
+	for currentElement := i.DocIDs.Front(); currentElement != nil; currentElement = currentElement.Next() {
+		if value, _ := currentElement.Value.(DocID); value > d {
+			break
+		}
+
+		previousElement = currentElement
+	}
+
+	if previousElement != nil {
+		i.DocIDs.InsertAfter(d, previousElement)
+	} else {
+		i.DocIDs.InsertBefore(d, i.DocIDs.Front())
+	}
+}
 
 func Cup(l1 *list.List, l2 *list.List) *list.List {
 	result := list.New()

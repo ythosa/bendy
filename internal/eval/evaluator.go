@@ -1,11 +1,11 @@
-package evaluate
+package eval
 
 import (
 	"container/list"
 	"fmt"
 
-	"github.com/ythosa/bendy/internal/evaluate/ast"
-	"github.com/ythosa/bendy/internal/evaluate/object"
+	"github.com/ythosa/bendy/internal/eval/ast"
+	"github.com/ythosa/bendy/internal/eval/object"
 	"github.com/ythosa/bendy/internal/index"
 )
 
@@ -30,13 +30,13 @@ func (e *Evaluator) Eval(node ast.Node) object.Object {
 		return e.Eval(node.Expression)
 
 	case *ast.WordLiteral:
-		docIDs := e.InvertIndex[node.Value]
-		if docIDs == nil {
-			docIDs = list.New()
+		idx := e.InvertIndex[node.Value]
+		if idx == nil {
+			idx = index.NewIndex(list.New())
 		}
 
 		return &object.DocIDs{
-			Value: docIDs,
+			Value: idx.DocIDs,
 		}
 
 	case *ast.PrefixExpression:

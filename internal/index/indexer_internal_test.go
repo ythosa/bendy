@@ -8,12 +8,21 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ythosa/bendy/internal/config"
-	"github.com/ythosa/bendy/internal/normalizer"
+	"github.com/ythosa/bendy/internal/decoding"
+	"github.com/ythosa/bendy/internal/normalizing"
 )
 
+func getTestIndexer() *Indexer {
+	return NewIndexer(
+		decoding.NewDecoderImpl(),
+		normalizing.NewNormalizerImpl(),
+		config.Get().Index,
+	)
+}
+
 func TestIndexer_IndexFiles(t *testing.T) {
-	filePaths := []string{"./test_index_files1", "./test_index_files2", "./test_index_files3"}
-	indxr := NewIndexer(normalizer.NewEnglishNormalizer(), config.Get().Index)
+	filePaths := []string{"./test_index_files1.txt", "./test_index_files2.txt", "./test_index_files3.txt"}
+	indxr := getTestIndexer()
 
 	// indexing error: no files
 	_, err := indxr.IndexFiles(filePaths)
@@ -36,25 +45,25 @@ func TestIndexer_IndexFiles(t *testing.T) {
 	_ = os.Remove(filePaths[2])
 
 	expectedInvertIndex := make(InvertIndex)
-	expectedInvertIndex["kek"] = SliceToList([]DocID{0, 1, 2})
-	expectedInvertIndex["keek"] = SliceToList([]DocID{0, 1})
-	expectedInvertIndex["keeek"] = SliceToList([]DocID{0})
+	expectedInvertIndex["kek"] = NewIndex(SliceToList([]DocID{0, 1, 2}))
+	expectedInvertIndex["keek"] = NewIndex(SliceToList([]DocID{0, 1}))
+	expectedInvertIndex["keeek"] = NewIndex(SliceToList([]DocID{0}))
 
 	for k, v := range invertIndex {
 		expectedValue, ok := expectedInvertIndex[k]
 		assert.Equal(t, ok, true)
-		CompareLists(t, expectedValue, v)
+		CompareLists(t, expectedValue.DocIDs, v.DocIDs)
 	}
 }
 
 func TestIndexer_MergeIndexingResults(t *testing.T) {
 	// there is no generated index files
-	i := NewIndexer(normalizer.NewEnglishNormalizer(), config.Get().Index)
+	i := getTestIndexer()
 	_, err := i.mergeIndexingResults(1)
 	assert.NotNil(t, err)
 
 	// ok
-	const inputFilePath = "./merge_indexing_results"
+	const inputFilePath = "./merge_indexing_results.txt"
 
 	f, _ := os.Create(inputFilePath)
 	_, _ = f.WriteString("input data :)")
@@ -68,22 +77,22 @@ func TestIndexer_MergeIndexingResults(t *testing.T) {
 
 	ii, err := i.mergeIndexingResults(2)
 	assert.Nil(t, err)
-	CompareLists(t, SliceToList([]DocID{0, 1}), ii["input"])
-	CompareLists(t, SliceToList([]DocID{0, 1}), ii["data"])
-	CompareLists(t, SliceToList([]DocID{1}), ii["kek"])
+	CompareLists(t, SliceToList([]DocID{0, 1}), ii["input"].DocIDs)
+	CompareLists(t, SliceToList([]DocID{0, 1}), ii["data"].DocIDs)
+	CompareLists(t, SliceToList([]DocID{1}), ii["kek"].DocIDs)
 }
 
 func TestIndexer_IndexFile(t *testing.T) {
 	t.Parallel()
 
-	i := NewIndexer(normalizer.NewEnglishNormalizer(), config.Get().Index)
+	i := getTestIndexer()
 
 	// error creating file
 	assert.NotNil(t, i.indexFile("./kek/kek", 1))
 
 	// ok
 	const (
-		validFilename = "test_index_file"
+		validFilename = "test_index_file.txt"
 		docID         = 1
 	)
 
@@ -100,7 +109,7 @@ func TestIndexer_IndexFile(t *testing.T) {
 func TestIndexer_GetFileNameFromDocID(t *testing.T) {
 	t.Parallel()
 
-	indxr := NewIndexer(normalizer.NewEnglishNormalizer(), config.Get().Index)
+	indxr := getTestIndexer()
 	filename := indxr.getFilenameFromDocID(1)
 	assert.Equal(t, fmt.Sprintf("%s1", config.Get().Index.TempFilesStoragePath), filename)
 }

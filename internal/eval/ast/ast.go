@@ -3,7 +3,7 @@ package ast
 import (
 	"bytes"
 
-	"github.com/ythosa/bendy/internal/evaluate/token"
+	"github.com/ythosa/bendy/internal/eval/token"
 )
 
 // Node is interface for simple node (anyone) element in the AST tree.
@@ -99,7 +99,7 @@ func (pe *PrefixExpression) String() string {
 
 // InfixExpression is type for infix expressions in the AST tree.
 type InfixExpression struct {
-	Token    token.Token // The operator token, e.g. +
+	Token    token.Token
 	Left     Expression
 	Operator string
 	Right    Expression

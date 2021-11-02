@@ -1,4 +1,4 @@
-package decoder_test
+package decoding
 
 import (
 	"bytes"
@@ -6,8 +6,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/ythosa/bendy/internal/decoder"
 )
 
 func TestTXTDecoder_DecodeNext(t *testing.T) {
@@ -32,7 +30,7 @@ func TestTXTDecoder_DecodeNext(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		txtDecoder := decoder.NewTXTDecoder(tc.file)
+		txtDecoder := newTXTDecoder(tc.file)
 
 		for i := 0; i < len(tc.expectedResult); i++ {
 			decoded, ok := txtDecoder.DecodeNext()

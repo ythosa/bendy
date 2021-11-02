@@ -10,27 +10,27 @@ import (
 	"golang.org/x/sync/semaphore"
 
 	"github.com/ythosa/bendy/internal/config"
-	"github.com/ythosa/bendy/internal/decoder"
-	"github.com/ythosa/bendy/internal/normalizer"
-	"github.com/ythosa/bendy/pkg/utils"
+	"github.com/ythosa/bendy/internal/decoding"
+	"github.com/ythosa/bendy/internal/normalizing"
+	"github.com/ythosa/bendy/pkg/fcheck"
 )
 
-type DocID uint32
-
 type Indexer struct {
-	normalizer normalizer.Normalizer
+	decoder    decoding.Decoder
+	normalizer normalizing.Normalizer
 	config     *config.Index
 }
 
-func NewIndexer(normalizer normalizer.Normalizer, config *config.Index) *Indexer {
+func NewIndexer(decoder decoding.Decoder, normalizer normalizing.Normalizer, config *config.Index) *Indexer {
 	return &Indexer{
+		decoder:    decoder,
 		normalizer: normalizer,
 		config:     config,
 	}
 }
 
 func (i *Indexer) IndexFiles(filePaths []string) (InvertIndex, error) {
-	if err := utils.CheckIsFilePathsValid(filePaths); err != nil {
+	if err := fcheck.CheckIsFilePathsValid(filePaths); err != nil {
 		return nil, fmt.Errorf("error while checking files: %w", err)
 	}
 
@@ -66,12 +66,21 @@ func (i *Indexer) indexFile(filePath string, docID DocID) error {
 		return fmt.Errorf("error while opening file: %w", err)
 	}
 
-	dec := decoder.NewTXTDecoder(file)
+	decoder, err := i.decoder.GetDecoder(file)
+	if err != nil {
+		return fmt.Errorf("error while getting decoder for file: %w", err)
+	}
+
 	tokens := make(map[string]bool)
 	dictionary := make([]string, 0)
 
-	for decoded, ok := dec.DecodeNext(); ok; decoded, ok = dec.DecodeNext() {
-		normalized := i.normalizer.Normalize(decoded)
+	for decoded, ok := decoder.DecodeNext(); ok; decoded, ok = decoder.DecodeNext() {
+		normalizer, err := i.normalizer.GetNormalizer(decoded)
+		if err != nil {
+			return fmt.Errorf("error while getting normalizer for %s: %w", decoded, err)
+		}
+
+		normalized := normalizer.Normalize(decoded)
 		if normalized == "" {
 			continue
 		}
@@ -102,11 +111,11 @@ func (i *Indexer) mergeIndexingResults(resultsCount int) (InvertIndex, error) {
 		}
 
 		for _, t := range terms {
-			if docIDs, ok := invertIndex[t]; ok {
-				InsertToListWithKeepSorting(docIDs, docID)
+			if index, ok := invertIndex[t]; ok {
+				index.Insert(docID)
 			} else {
-				invertIndex[t] = list.New()
-				invertIndex[t].PushBack(docID)
+				invertIndex[t] = NewIndex(list.New())
+				invertIndex[t].DocIDs.PushBack(docID)
 			}
 		}
 	}

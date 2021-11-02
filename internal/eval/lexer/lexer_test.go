@@ -3,8 +3,8 @@ package lexer_test
 import (
 	"testing"
 
-	"github.com/ythosa/bendy/internal/evaluate/lexer"
-	"github.com/ythosa/bendy/internal/evaluate/token"
+	"github.com/ythosa/bendy/internal/eval/lexer"
+	"github.com/ythosa/bendy/internal/eval/token"
 )
 
 func TestNextToken(t *testing.T) {
