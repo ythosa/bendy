@@ -34,8 +34,6 @@ func (u *UpdateIndexCommand) getCLI() *cobra.Command {
 		Short:   "Updates invert index",
 		Args:    cobra.ExactArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
-			filename := args[0]
-
 			files, err := u.filesStorage.Get()
 			if err != nil {
 				fmt.Printf("Error while getting files to index: %s", err)
@@ -46,7 +44,6 @@ func (u *UpdateIndexCommand) getCLI() *cobra.Command {
 			i, err := u.indexer.IndexFiles(files)
 			if err != nil {
 				fmt.Printf("Error while indexing files: %s", err)
-				_ = u.filesStorage.Delete(filename)
 
 				return
 			}
