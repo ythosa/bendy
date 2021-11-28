@@ -5,25 +5,18 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/ythosa/bendy/internal/index"
 	"github.com/ythosa/bendy/internal/storage"
 )
 
 type RemoveFileCommand struct {
 	filesStorage storage.Files
-	indexStorage storage.Index
-	indexer      *index.Indexer
 }
 
 func NewRemoveFileCommand(
 	filesStorage storage.Files,
-	indexStorage storage.Index,
-	indexer *index.Indexer,
 ) *RemoveFileCommand {
 	return &RemoveFileCommand{
 		filesStorage: filesStorage,
-		indexStorage: indexStorage,
-		indexer:      indexer,
 	}
 }
 
@@ -39,26 +32,6 @@ func (r *RemoveFileCommand) getCLI() *cobra.Command {
 
 			if err := r.filesStorage.Delete(filename); err != nil {
 				fmt.Printf("Error while deleting file from index: %s", err)
-
-				return
-			}
-
-			files, err := r.filesStorage.Get()
-			if err != nil {
-				fmt.Printf("Error while getting indexing files: %s", err)
-
-				return
-			}
-
-			i, err := r.indexer.IndexFiles(files)
-			if err != nil {
-				fmt.Printf("Error while indexing files: %s", err)
-
-				return
-			}
-
-			if err := r.indexStorage.Set(i); err != nil {
-				fmt.Printf("Error while updating indexes: %s", err)
 
 				return
 			}

@@ -21,11 +21,14 @@ func NewIndexImpl(indexStoragePath string) *IndexImpl {
 func (i *IndexImpl) Get() (index.InvertIndex, error) {
 	rawData, err := ioutil.ReadFile(i.indexStoragePath)
 	if err != nil {
-		if _, err := os.Create(i.indexStoragePath); err != nil {
+		file, err := os.Create(i.indexStoragePath)
+		if err != nil {
 			logrus.Error(err)
 
 			return nil, ErrCreatingDataFile
 		}
+
+		defer file.Close()
 
 		return make(index.InvertIndex), nil
 	}
@@ -45,6 +48,8 @@ func (i *IndexImpl) Set(idx index.InvertIndex) error {
 		return ErrCreatingDataFile
 	}
 
+	defer file.Close()
+
 	indexOnSlices := invertIndexToEncoded(idx)
 
 	s, err := json.Marshal(indexOnSlices)
@@ -59,8 +64,6 @@ func (i *IndexImpl) Set(idx index.InvertIndex) error {
 
 		return ErrWritingToDataFile
 	}
-
-	_ = file.Close()
 
 	return nil
 }

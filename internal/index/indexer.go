@@ -66,6 +66,8 @@ func (i *Indexer) indexFile(filePath string, docID DocID) error {
 		return fmt.Errorf("error while opening file: %w", err)
 	}
 
+	defer file.Close()
+
 	decoder, err := i.decoder.GetDecoder(file)
 	if err != nil {
 		return fmt.Errorf("error while getting decoder for file: %w", err)

@@ -12,9 +12,10 @@ import (
 
 func getSubcommands(storage *storage.Storage, indexer *index.Indexer) []cmd.Command {
 	return []cmd.Command{
-		cmd.NewAddFileCommand(storage.Files, storage.Index, indexer),
+		cmd.NewAddFileCommand(storage.Files),
 		cmd.NewGetFilesCommand(storage.Files),
-		cmd.NewRemoveFileCommand(storage.Files, storage.Index, indexer),
+		cmd.NewRemoveFileCommand(storage.Files),
+		cmd.NewUpdateIndexCommand(storage.Files, storage.Index, indexer),
 		cmd.NewReplCommand(storage.Files, storage.Index),
 	}
 }

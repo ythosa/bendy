@@ -12,12 +12,12 @@ func encodeDictionaryToFile(dictionary []string, filePath string) error {
 		return fmt.Errorf("error while creating file: %w", err)
 	}
 
+	defer f.Close()
+
 	e := gob.NewEncoder(f)
 	if err := e.Encode(dictionary); err != nil {
 		return fmt.Errorf("error while encoding: %w", err)
 	}
-
-	_ = f.Close()
 
 	return nil
 }
@@ -28,14 +28,14 @@ func decodeDictionaryFromFile(filePath string) ([]string, error) {
 		return nil, fmt.Errorf("error while opening file: %w", err)
 	}
 
+	defer f.Close()
+
 	var terms []string
 
 	d := gob.NewDecoder(f)
 	if err := d.Decode(&terms); err != nil {
 		return nil, fmt.Errorf("error while decoding terms from file: %w", err)
 	}
-
-	_ = f.Close()
 
 	return terms, nil
 }

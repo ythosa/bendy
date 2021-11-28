@@ -79,6 +79,8 @@ func (f *FilesImpl) update(filenames []string) error {
 		return ErrCreatingDataFile
 	}
 
+	defer file.Close()
+
 	s, err := json.Marshal(filenames)
 	if err != nil {
 		logrus.Error(err)
@@ -91,8 +93,6 @@ func (f *FilesImpl) update(filenames []string) error {
 
 		return ErrWritingToDataFile
 	}
-
-	_ = file.Close()
 
 	return nil
 }
@@ -109,6 +109,8 @@ func (f *FilesImpl) createEmptyDataFile() error {
 		return ErrCreatingDataFile
 	}
 
+	defer file.Close()
+
 	emptyData := make([]string, 0)
 
 	s, err := json.Marshal(emptyData)
@@ -123,8 +125,6 @@ func (f *FilesImpl) createEmptyDataFile() error {
 
 		return ErrWritingToDataFile
 	}
-
-	_ = file.Close()
 
 	return nil
 }
