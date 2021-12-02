@@ -42,7 +42,7 @@ Search format:
 5) () - brackets are used the way you are used to.
 
 Example: "word1" | ("word2" & "word3") | !"word4" & "word5"`,
-		Args:  cobra.NoArgs,
+		Args: cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			i, err := r.indexStorage.Get()
 			if err != nil {
