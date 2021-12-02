@@ -30,6 +30,18 @@ func (r *REPLCommand) getCLI() *cobra.Command {
 	return &cobra.Command{
 		Use:   "repl",
 		Short: "Returns indexing files",
+		Long: `Using:
+1) write some request and press ENTER;
+2) use CTRL + D to exit.
+
+Search format:
+1) & - for AND operation;
+2) | - for OR operation;
+3) ! - for OR operation;
+4) "..." - for the word you want to find;
+5) () - brackets are used the way you are used to.
+
+Example: "word1" | ("word2" & "word3") | !"word4" & "word5"`,
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			i, err := r.indexStorage.Get()
@@ -71,6 +83,8 @@ func (r *REPLCommand) getCLI() *cobra.Command {
 				switch v := evaluated.(type) {
 				case *object.DocIDs:
 					printDocuments(files, v.Value)
+				case nil:
+					_, _ = fmt.Fprintf(os.Stdout, "Empty result\n")
 				default:
 					_, _ = fmt.Fprintf(os.Stdout, "%s\n", evaluated.Inspect())
 				}
